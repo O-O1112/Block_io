@@ -1,0 +1,114 @@
+# Block Engine - Changelog
+
+All notable changes to the Block execution engine will be documented in this file.
+
+## [2.2.0] - 2026-08-18
+
+### 🚀 Features & Enhancements
+
+#### Cross-Runtime State Synchronization Fixes
+- **Fixed** state bridge protocol serialization issues when passing complex objects between Python and JavaScript
+- **Improved** null/undefined handling across language boundaries
+- **Added** automatic type coercion for numeric edge cases (NaN, Infinity)
+
+#### Parser Robustness Enhancement
+- **Fixed** edge case where nested block tags were incorrectly parsed
+- **Improved** error recovery in malformed code blocks
+- **Enhanced** line number tracking for more accurate error reporting
+
+#### IDE Plugin Compatibility Update
+- **Updated** VS Code extension syntax highlighting for v2.2 block syntax
+- **Fixed** Acode mobile editor serialization issues
+- **Added** IntelliSense support for state variable completions
+
+#### Security Patch & Runtime Isolation
+- **Patched** potential sandbox escape via circular import loops
+- **Hardened** file access restrictions in import statements
+- **Fixed** timeout enforcement in long-running blocks
+
+#### Performance Optimization - State Bridge
+- **Optimized** serialization performance by 35% for large arrays and objects
+- **Reduced** memory overhead during cross-runtime state transfers
+- **Fixed** memory leak in state cache eviction logic
+
+### 📦 Edition Updates
+
+#### Block Lite v2.2.0 - Reduced Footprint & Improved Module Resolution
+- Installer footprint reduced to 17 MB
+- **Fixed** Python module resolution for relative imports
+- **Improved** HTML output rendering performance
+- Better error messages for missing runtime dependencies
+
+#### Block Standard v2.2.0 - Serialization Protocol Enhancement
+- Serialization protocol upgraded to v2.2
+- **Added** PHP 8.3 runtime support
+- **Added** Lua 5.4 integration improvements
+- **Fixed** SQLite transaction handling across state boundaries
+- Enhanced documentation for module imports
+
+#### Block Plus v2.2.0 - Extended Runtime Matrix
+- **Added** Rust native compilation integration
+- **Added** Go module imports support
+- **Added** Zig language experimental support
+- **Improved** custom runtime definition validation
+- **Fixed** WinGet assisted setup configuration
+
+### 🔧 Tooling & CLI
+
+#### Installer: Fixed PATH Environment Propagation
+- **Fixed** Windows PATH environment variable not being set correctly
+- **Improved** installation detection on fresh systems
+- Added system restart recommendation check
+
+#### VS Code Extension: Enhanced Syntax Highlighting
+- **Added** highlighting for state variable interpolation
+- **Improved** color theme compatibility
+- **Fixed** folding markers for nested blocks
+- Enhanced debugging integration
+
+#### Acode Plugin: Mobile Editor Support
+- **Added** real-time execution feedback
+- **Fixed** touch keyboard interaction issues
+- Improved syntax highlighting for mobile screens
+- Added execution timeout warnings
+
+### 📚 Documentation & Guides
+
+#### Documentation Structure Consolidation
+- Consolidated README variants into single comprehensive guide
+- **Improved** architecture documentation clarity
+- Added quick-start guides for each edition
+- Enhanced polyglot workflow examples
+- Better error message reference documentation
+
+### 🐛 Bug Fixes
+
+- Fixed crash when importing large `.blk` files (>10MB)
+- Fixed race condition in concurrent state access
+- Fixed incorrect error line numbers in nested imports
+- Fixed HTML templating with special characters
+- Fixed JSON output with circular references
+- Fixed module caching not respecting file changes
+
+### ⚠️ Known Issues
+
+- Custom runtime definitions with symlinks may not work on Windows
+- Very large state objects (>100MB) may cause memory pressure
+- Circular cross-imports still rejected (by design, for safety)
+
+### 🔄 Deprecations
+
+- Block v1.x installation no longer supported
+- Legacy `.blkx` format no longer recognized
+
+---
+
+## [2.1.0] - Previous Release
+
+See git history for details on previous versions.
+
+---
+
+## Contributing
+
+To report issues or suggest improvements, visit: https://github.com/O-O1112/Block_lang/issues
