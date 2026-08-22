@@ -6,7 +6,7 @@
 
 **One file. Every runtime.** Block is a local-first polyglot programming engine for composing Python, JavaScript, Lua, PHP, SQLite, and more in one readable program with a shared state pipeline.
 
-**Start here:** [download the engine](downloads.html) · [read the documentation](wiki.html) · [run the examples](examples/) · [browse the source on GitHub](https://github.com/O-O1112/Block_lang)
+**Start here:** [download the engine](downloads.html) · [read the documentation](wiki.html) · [run the examples](examples/) · [report an external result](docs/THIRD-PARTY-VALIDATION.md) · [browse the source on GitHub](https://github.com/O-O1112/Block_lang)
 
 Maintainers can use the [organic growth playbook](docs/GROWTH.md) to turn demos, releases, and user feedback into a repeatable discovery-to-install funnel.
 

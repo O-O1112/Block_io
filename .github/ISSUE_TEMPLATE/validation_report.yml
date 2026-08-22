@@ -1,0 +1,68 @@
+name: External validation report
+description: Share a reproducible Block result, integration, tutorial, or independent review.
+title: "[Validation] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing Block. Please do not include passwords, API keys, private source code, personal addresses, or unredacted private logs.
+        For security vulnerabilities, use [SECURITY.md](../../SECURITY.md) instead.
+  - type: input
+    id: version
+    attributes:
+      label: Block version and edition
+      placeholder: 2.2.0 Standard
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Include OS and relevant host runtime versions.
+      placeholder: Windows 11 x64, Python 3.12, Node.js 22
+    validations:
+      required: true
+  - type: input
+    id: scenario
+    attributes:
+      label: Scenario or example
+      description: Name the example or describe the real workflow you tested.
+      placeholder: examples/hello-polyglot.blk
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Commands and steps
+      description: Provide the smallest safe reproduction.
+      placeholder: |
+        1. Download ...
+        2. Run ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Expected and observed result
+      description: Include relevant output with secrets and private paths removed.
+    validations:
+      required: true
+  - type: input
+    id: evidence_link
+    attributes:
+      label: Public evidence link
+      description: Optional link to a tutorial, repository, demo, or independent write-up.
+      placeholder: https://...
+  - type: dropdown
+    id: quote_permission
+    attributes:
+      label: Quote permission
+      description: May the maintainer quote or summarize this report with attribution?
+      options:
+        - No
+        - Yes, with my username
+        - Yes, anonymously
+      default: 0
+    validations:
+      required: true
