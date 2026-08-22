@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+  <Metadata>
+    <Identity Language="en-US" Id="block-language" Version="2.2.0" Publisher="block-team" />
+    <DisplayName>Block Language (Polyglot Orchestrator)</DisplayName>
+    <Description xml:space="preserve">Official VS Code Extension for Block Engine v2.2.0 (Ecosystem Edition)</Description>
+    <Tags>snippet,keybindings,block,Block,BlockLite,BlockPlus,ecosystem,__ext_blk,__ext_block,__ext_blkl,__ext_blkp</Tags>
+    <Categories>Programming Languages,Snippets,Formatters</Categories>
+    <GalleryFlags>Public</GalleryFlags>
+    <Properties>
+      <Property Id="Microsoft.VisualStudio.Code.Engine" Value="^1.80.0" />
+      <Property Id="Microsoft.VisualStudio.Code.ExtensionKind" Value="workspace" />
+      <Property Id="Microsoft.VisualStudio.Code.ExecutesCode" Value="true" />
+      <Property Id="Microsoft.VisualStudio.Services.Content.Pricing" Value="Free" />
+    </Properties>
+    <Icon>extension/icon.png</Icon>
+  </Metadata>
+  <Installation>
+    <InstallationTarget Id="Microsoft.VisualStudio.Code" />
+  </Installation>
+  <Dependencies />
+  <Assets>
+    <Asset Type="Microsoft.VisualStudio.Code.Manifest" Path="extension/package.json" Addressable="true" />
+    <Asset Type="Microsoft.VisualStudio.Services.Content.Details" Path="extension/README.md" Addressable="true" />
+    <Asset Type="Microsoft.VisualStudio.Services.Icons.Default" Path="extension/icon.png" Addressable="true" />
+  </Assets>
+</PackageManifest>

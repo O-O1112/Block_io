@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="vsixmanifest" ContentType="text/xml" />
+  <Default Extension="json" ContentType="application/json" />
+  <Default Extension="md" ContentType="text/markdown" />
+  <Default Extension="js" ContentType="application/javascript" />
+  <Default Extension="png" ContentType="image/png" />
+  <Default Extension="svg" ContentType="image/svg+xml" />
+  <Default Extension="ico" ContentType="image/x-icon" />
+  <Default Extension="tmLanguage.json" ContentType="application/json" />
+  <Override PartName="/extension.vsixmanifest" ContentType="text/xml" />
+</Types>

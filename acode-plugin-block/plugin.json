@@ -1,0 +1,15 @@
+{
+  "id": "com.blocklang.acode",
+  "name": "Block Engine",
+  "main": "main.js",
+  "version": "2.2.0",
+  "readme": "readme.md",
+  "icon": "icon.svg",
+  "files": [],
+  "price": 0,
+  "author": {
+    "name": "Antigravity",
+    "email": "support@blocklang.example.com",
+    "github": "block-lang"
+  }
+}

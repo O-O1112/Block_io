@@ -1,0 +1,291 @@
+{
+  "if block": {
+    "prefix": ["if", "ifblock"],
+    "body": [
+      "if ${1:condition}:",
+      "\t${2:pass}",
+      "block"
+    ],
+    "description": "If conditional statement"
+  },
+  "if else block": {
+    "prefix": ["ife", "ifelse"],
+    "body": [
+      "if ${1:condition}:",
+      "\t${2:pass}",
+      "else:",
+      "\t${3:pass}",
+      "block"
+    ],
+    "description": "If-Else conditional statement"
+  },
+  "while block": {
+    "prefix": ["while", "loop"],
+    "body": [
+      "while ${1:condition}:",
+      "\t${2:pass}",
+      "block"
+    ],
+    "description": "While loop"
+  },
+  "for block": {
+    "prefix": ["for"],
+    "body": [
+      "for ${1:item} in ${2:iterable}:",
+      "\t${3:pass}",
+      "block"
+    ],
+    "description": "For loop"
+  },
+  "function block": {
+    "prefix": ["func", "def", "function"],
+    "body": [
+      "func ${1:name}(${2:args}):",
+      "\t${3:pass}",
+      "block"
+    ],
+    "description": "Function definition"
+  },
+  "print statement": {
+    "prefix": ["print", "pr"],
+    "body": [
+      "print(${1:\"message\"})"
+    ],
+    "description": "Print to console"
+  },
+  "python block": {
+    "prefix": ["py", "python", "<py>"],
+    "body": [
+      "<py>",
+      "${1:# Write Python code here}",
+      "</py>"
+    ],
+    "description": "Embed Python code"
+  },
+  "javascript block": {
+    "prefix": ["js", "javascript", "<js>"],
+    "body": [
+      "<js>",
+      "${1:// Write JavaScript code here}",
+      "</js>"
+    ],
+    "description": "Embed JavaScript code"
+  },
+  "lua block": {
+    "prefix": ["lua", "<lua>"],
+    "body": [
+      "<lua>",
+      "${1:-- Write Lua code here}",
+      "</lua>"
+    ],
+    "description": "Embed Lua code"
+  },
+  "powershell block": {
+    "prefix": ["ps", "powershell", "<ps>"],
+    "body": [
+      "<ps>",
+      "${1:# Write PowerShell code here}",
+      "</ps>"
+    ],
+    "description": "Embed PowerShell code"
+  },
+  "sql block": {
+    "prefix": ["sql", "<sql>"],
+    "body": [
+      "<sql>",
+      "${1:-- Write SQL queries here}",
+      "</sql>"
+    ],
+    "description": "Embed SQL queries"
+  },
+  "php block": {
+    "prefix": ["php", "<php>"],
+    "body": [
+      "<php>",
+      "${1:// Write PHP code here}",
+      "</php>"
+    ],
+    "description": "Embed PHP code"
+  },
+  "ruby block": {
+    "prefix": ["ruby", "rb", "<ruby>"],
+    "body": [
+      "<ruby>",
+      "${1:# Write Ruby code here}",
+      "</ruby>"
+    ],
+    "description": "Embed Ruby code"
+  },
+  "html block": {
+    "prefix": ["html", "<html>"],
+    "body": [
+      "<html>",
+      "${1:<!-- Write HTML code here -->}",
+      "</html>"
+    ],
+    "description": "Embed HTML layout"
+  },
+  "json block": {
+    "prefix": ["json", "<json>"],
+    "body": [
+      "<json>",
+      "{",
+      "  \"${1:key}\": \"${2:value}\"",
+      "}",
+      "</json>"
+    ],
+    "description": "Embed JSON output"
+  },
+  "rust block": {
+    "prefix": ["rust", "<rust>"],
+    "body": [
+      "<rust>",
+      "println!(\"${1:Hello from Rust!}\");",
+      "</rust>"
+    ],
+    "description": "Embed Rust code (Block+)"
+  },
+  "go block": {
+    "prefix": ["go", "golang", "<go>"],
+    "body": [
+      "<go>",
+      "fmt.Println(\"${1:Hello from Go!}\")",
+      "</go>"
+    ],
+    "description": "Embed Go code (Block+)"
+  },
+  "cpp block": {
+    "prefix": ["cpp", "c++", "<cpp>"],
+    "body": [
+      "<cpp>",
+      "std::cout << \"${1:Hello from C++!}\" << std::endl;",
+      "</cpp>"
+    ],
+    "description": "Embed C++ code (Block+)"
+  },
+  "c block": {
+    "prefix": ["c", "<c>"],
+    "body": [
+      "<c>",
+      "printf(\"${1:Hello from C!}\\n\");",
+      "</c>"
+    ],
+    "description": "Embed C code (Block+)"
+  },
+  "typescript block": {
+    "prefix": ["ts", "typescript", "<ts>"],
+    "body": [
+      "<ts>",
+      "const message: string = \"${1:Hello from TypeScript!}\";",
+      "console.log(message);",
+      "</ts>"
+    ],
+    "description": "Embed TypeScript code (Block+)"
+  },
+  "csharp block": {
+    "prefix": ["cs", "csharp", "<cs>"],
+    "body": [
+      "<cs>",
+      "Console.WriteLine(\"${1:Hello from C#!}\");",
+      "</cs>"
+    ],
+    "description": "Embed C# code (Block+)"
+  },
+  "zig block": {
+    "prefix": ["zig", "<zig>"],
+    "body": [
+      "<zig>",
+      "std.debug.print(\"${1:Hello from Zig!}\\n\", .{});",
+      "</zig>"
+    ],
+    "description": "Embed Zig code (Block+)"
+  },
+  "dart block": {
+    "prefix": ["dart", "<dart>"],
+    "body": [
+      "<dart>",
+      "print('${1:Hello from Dart!}');",
+      "</dart>"
+    ],
+    "description": "Embed Dart code (Block+)"
+  },
+  "perl block": {
+    "prefix": ["perl", "pl", "<perl>"],
+    "body": [
+      "<perl>",
+      "print \"${1:Hello from Perl!}\\n\";",
+      "</perl>"
+    ],
+    "description": "Embed Perl code (Block+)"
+  },
+  "r block": {
+    "prefix": ["r", "<r>"],
+    "body": [
+      "<r>",
+      "cat(\"${1:Hello from R!}\\n\")",
+      "</r>"
+    ],
+    "description": "Embed R code (Block+)"
+  },
+  "server block": {
+    "prefix": ["server", "<server>"],
+    "body": [
+      "<server port=\"${1:8080}\">",
+      "  $2",
+      "</server>"
+    ],
+    "description": "Define a web server"
+  },
+  "route block": {
+    "prefix": ["route", "<route>"],
+    "body": [
+      "<route path=\"${1:/api}\">",
+      "  $2",
+      "</route>"
+    ],
+    "description": "Define a server route"
+  },
+  "import file": {
+    "prefix": ["import", "<import>"],
+    "body": [
+      "<import src=\"${1:modules/common.blk}\" />"
+    ],
+    "description": "Import a local Block module (Standard and Plus)"
+  },
+  "use package": {
+    "prefix": ["use", "package", "<use>"],
+    "body": [
+      "<use package=\"${1:package-name}\" entry=\"${2:main.blk}\" />"
+    ],
+    "description": "Load a package from the local Block ecosystem"
+  },
+  "del block": {
+    "prefix": ["del", "<del>"],
+    "body": [
+      "<del>",
+      "  $1",
+      "</del>"
+    ],
+    "description": "Delete global variables"
+  },
+  "boilerplate main": {
+    "prefix": ["main", "init", "start"],
+    "body": [
+      "print(\"--- Block Polyglot Script Started ---\")",
+      "",
+      "${1:var_name} = ${2:100}",
+      "",
+      "<py>",
+      "print(f\"Python received {1}: {${1:var_name}}\")",
+      "${1:var_name} = ${1:var_name} + 50",
+      "</py>",
+      "",
+      "<js>",
+      "console.log(`JS received ${1}: ${${1:var_name}}`);",
+      "</js>",
+      "",
+      "print(\"Final Result:\", ${1:var_name})"
+    ],
+    "description": "Standard Block Polyglot Template"
+  }
+}

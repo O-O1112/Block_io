@@ -1,0 +1,112 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Block",
+    "patterns": [
+        {
+            "begin": "^\\s*<py>\\s*$",
+            "end": "^\\s*</py>\\s*$",
+            "beginCaptures": {"0": {"name": "keyword.control.block.python.begin"}},
+            "endCaptures": {"0": {"name": "keyword.control.block.python.end"}},
+            "patterns": [{ "include": "source.python" }]
+        },
+        {
+            "begin": "^\\s*<js>\\s*$",
+            "end": "^\\s*</js>\\s*$",
+            "beginCaptures": {"0": {"name": "keyword.control.block.js.begin"}},
+            "endCaptures": {"0": {"name": "keyword.control.block.js.end"}},
+            "patterns": [{ "include": "source.js" }]
+        },
+        {
+            "begin": "^\\s*<ps>\\s*$",
+            "end": "^\\s*</ps>\\s*$",
+            "beginCaptures": {"0": {"name": "keyword.control.block.ps.begin"}},
+            "endCaptures": {"0": {"name": "keyword.control.block.ps.end"}},
+            "patterns": [{ "include": "source.powershell" }]
+        },
+        {
+            "begin": "^\\s*<sql>\\s*$",
+            "end": "^\\s*</sql>\\s*$",
+            "beginCaptures": {"0": {"name": "keyword.control.block.sql.begin"}},
+            "endCaptures": {"0": {"name": "keyword.control.block.sql.end"}},
+            "patterns": [{ "include": "source.sql" }]
+        },
+        {
+            "begin": "^\\s*<lua>\\s*$",
+            "end": "^\\s*</lua>\\s*$",
+            "beginCaptures": {"0": {"name": "keyword.control.block.lua.begin"}},
+            "endCaptures": {"0": {"name": "keyword.control.block.lua.end"}},
+            "patterns": [{ "include": "source.lua" }]
+        },
+        {
+            "begin": "^\\s*<php>\\s*$",
+            "end": "^\\s*</php>\\s*$",
+            "beginCaptures": {"0": {"name": "keyword.control.block.php.begin"}},
+            "endCaptures": {"0": {"name": "keyword.control.block.php.end"}},
+            "patterns": [{ "include": "source.php" }]
+        },
+        {
+            "begin": "^\\s*<ruby>\\s*$",
+            "end": "^\\s*</ruby>\\s*$",
+            "beginCaptures": {"0": {"name": "keyword.control.block.ruby.begin"}},
+            "endCaptures": {"0": {"name": "keyword.control.block.ruby.end"}},
+            "patterns": [{ "include": "source.ruby" }]
+        },
+        {
+            "begin": "^\\s*<html>\\s*$",
+            "end": "^\\s*</html>\\s*$",
+            "beginCaptures": {"0": {"name": "keyword.control.block.html.begin"}},
+            "endCaptures": {"0": {"name": "keyword.control.block.html.end"}},
+            "patterns": [{ "include": "text.html.basic" }]
+        },
+        {
+            "begin": "^\\s*<json>\\s*$",
+            "end": "^\\s*</json>\\s*$",
+            "beginCaptures": {"0": {"name": "keyword.control.block.json.begin"}},
+            "endCaptures": {"0": {"name": "keyword.control.block.json.end"}},
+            "patterns": [{ "include": "source.json" }]
+        },
+        {
+            "begin": "^\\s*<del>\\s*$",
+            "end": "^\\s*</del>\\s*$",
+            "beginCaptures": {"0": {"name": "keyword.control.block.del.begin"}},
+            "endCaptures": {"0": {"name": "keyword.control.block.del.end"}},
+            "patterns": [{ "match": ".+", "name": "variable.other.block" }]
+        },
+        {
+            "begin": "^\\s*<server(?:\\s+port=[\"']\\d+[\"'])?>\\s*$",
+            "end": "^\\s*</server>\\s*$",
+            "beginCaptures": {"0": {"name": "keyword.control.block.server.begin"}},
+            "endCaptures": {"0": {"name": "keyword.control.block.server.end"}},
+            "patterns": [{"include": "source.block"}]
+        },
+        {
+            "begin": "^\\s*<route(?:\\s+path=[\"'][^\"']+[\"'])?>\\s*$",
+            "end": "^\\s*</route>\\s*$",
+            "beginCaptures": {"0": {"name": "keyword.control.block.route.begin"}},
+            "endCaptures": {"0": {"name": "keyword.control.block.route.end"}},
+            "patterns": [{"include": "source.block"}]
+        },
+        {
+            "match": "^\\s*<(import|use|define)\\b.*$",
+            "name": "keyword.control.block.ecosystem"
+        },
+        {
+            "match": "\\b(if|elif|else|while|for|func|block|print)\\b",
+            "name": "keyword.control.block"
+        },
+        {
+            "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+            "name": "entity.name.function.block"
+        },
+        {
+            "match": "\\b([0-9]+(\\.[0-9]+)?)\\b",
+            "name": "constant.numeric.block"
+        },
+        {
+            "begin": "\"",
+            "end": "\"",
+            "name": "string.quoted.double.block"
+        }
+    ],
+    "scopeName": "source.block"
+}

@@ -1,0 +1,194 @@
+{
+    "name": "block-language",
+    "displayName": "Block Language (Polyglot Orchestrator)",
+    "description": "Official VS Code Extension for Block Engine v2.2.0 (Ecosystem Edition)",
+    "version": "2.2.0",
+    "publisher": "block-team",
+    "icon": "icon.png",
+    "main": "./extension.js",
+    "engines": {
+        "vscode": "^1.80.0"
+    },
+    "categories": [
+        "Programming Languages",
+        "Snippets",
+        "Formatters"
+    ],
+    "activationEvents": [
+        "onLanguage:block"
+    ],
+    "capabilities": {
+        "untrustedWorkspaces": {
+            "supported": "limited",
+            "description": "Running a Block file executes local runtimes and must be enabled only for trusted workspaces.",
+            "restrictedConfigurations": [
+                "block.customEnginePath"
+            ]
+        }
+    },
+    "contributes": {
+        "commands": [
+            {
+                "command": "block.runScript",
+                "title": "Run Block Script",
+                "icon": "$(play)"
+            },
+            {
+                "command": "block.runPlus",
+                "title": "Run with Block+ (Flagship)",
+                "icon": "$(rocket)"
+            },
+            {
+                "command": "block.runLite",
+                "title": "Run with Block Lite",
+                "icon": "$(zap)"
+            },
+            {
+                "command": "block.formatScript",
+                "title": "Format Polyglot Block Code",
+                "icon": "$(source-control)"
+            },
+            {
+                "command": "block.checkDiagnostics",
+                "title": "Run Block Syntax Diagnostics",
+                "icon": "$(search)"
+            },
+            {
+                "command": "block.previewHtml",
+                "title": "Preview Rendered HTML Output",
+                "icon": "$(preview)"
+            },
+            {
+                "command": "block.initProject",
+                "title": "Initialize Block Ecosystem Project",
+                "icon": "$(folder-opened)"
+            },
+            {
+                "command": "block.listPackages",
+                "title": "List Block Ecosystem Packages",
+                "icon": "$(package)"
+            },
+            {
+                "command": "block.addPackage",
+                "title": "Add Local Block Package",
+                "icon": "$(cloud-download)"
+            }
+        ],
+        "keybindings": [
+            {
+                "command": "block.runScript",
+                "key": "ctrl+f5",
+                "mac": "cmd+f5",
+                "when": "editorTextFocus && resourceLangId == block"
+            },
+            {
+                "command": "block.formatScript",
+                "key": "ctrl+shift+f",
+                "mac": "cmd+shift+f",
+                "when": "editorTextFocus && resourceLangId == block"
+            }
+        ],
+        "menus": {
+            "editor/title": [
+                {
+                    "when": "resourceLangId == block",
+                    "command": "block.runScript",
+                    "group": "navigation@1"
+                },
+                {
+                    "when": "resourceLangId == block",
+                    "command": "block.previewHtml",
+                    "group": "navigation@2"
+                }
+            ],
+            "editor/context": [
+                {
+                    "when": "resourceLangId == block",
+                    "command": "block.runScript",
+                    "group": "1_modification"
+                },
+                {
+                    "when": "resourceLangId == block",
+                    "command": "block.formatScript",
+                    "group": "1_modification"
+                },
+                {
+                    "when": "resourceLangId == block",
+                    "command": "block.checkDiagnostics",
+                    "group": "2_diagnosis"
+                },
+                {
+                    "when": "resourceLangId == block",
+                    "command": "block.initProject",
+                    "group": "3_ecosystem"
+                },
+                {
+                    "when": "resourceLangId == block",
+                    "command": "block.listPackages",
+                    "group": "3_ecosystem"
+                }
+            ]
+        },
+        "snippets": [
+            {
+                "language": "block",
+                "path": "./snippets/block.json"
+            }
+        ],
+        "languages": [
+            {
+                "id": "block",
+                "aliases": [
+                    "Block",
+                    "block",
+                    "Block Lite",
+                    "Block Plus"
+                ],
+                "extensions": [
+                    ".blk",
+                    ".block",
+                    ".blkl",
+                    ".blocklite",
+                    ".blkp",
+                    ".blockplus"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "configuration": {
+            "title": "Block Engine",
+            "properties": {
+                "block.customEnginePath": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Custom path to block.exe or block-plus.exe executable."
+                },
+                "block.enableCodeLens": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Show interactive CodeLens run buttons above block tags."
+                }
+            }
+        },
+        "configurationDefaults": {
+            "[block]": {
+                "editor.quickSuggestions": {
+                    "other": true,
+                    "comments": false,
+                    "strings": true
+                },
+                "editor.snippetSuggestions": "top",
+                "editor.suggestSelection": "first",
+                "editor.tabCompletion": "on",
+                "editor.wordBasedSuggestions": "currentDocument"
+            }
+        },
+        "grammars": [
+            {
+                "language": "block",
+                "scopeName": "source.block",
+                "path": "./syntaxes/block.tmLanguage.json"
+            }
+        ]
+    }
+}

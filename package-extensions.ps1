@@ -1,0 +1,37 @@
+param(
+    [string]$OutputDirectory = ""
+)
+
+$ErrorActionPreference = "Stop"
+$root = Split-Path -Parent $MyInvocation.MyCommand.Path
+if ([string]::IsNullOrWhiteSpace($OutputDirectory)) { $OutputDirectory = $root }
+$OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
+$stage = Join-Path ([IO.Path]::GetTempPath()) ("block-package-" + [Guid]::NewGuid().ToString("N"))
+New-Item -ItemType Directory -Force -Path (Join-Path $stage "extension") | Out-Null
+
+try {
+    $vsixSource = Join-Path $root "block-vscode-extension"
+    Copy-Item -LiteralPath (Join-Path $vsixSource "extension.vsixmanifest") -Destination $stage
+    Copy-Item -LiteralPath (Join-Path $vsixSource "[Content_Types].xml") -Destination $stage
+    Get-ChildItem -LiteralPath $vsixSource -Force | Where-Object {
+        $_.Name -notin @("extension.vsixmanifest", "[Content_Types].xml", "block-language-2.2.0.vsix")
+    } | Copy-Item -Destination (Join-Path $stage "extension") -Recurse -Force
+
+    $vsix = Join-Path $OutputDirectory "block-language-2.2.0.vsix"
+    $vsixZip = Join-Path $OutputDirectory "block-language-2.2.0.package.zip"
+    if (Test-Path -LiteralPath $vsix) { Remove-Item -LiteralPath $vsix -Force }
+    if (Test-Path -LiteralPath $vsixZip) { Remove-Item -LiteralPath $vsixZip -Force }
+    # Compress-Archive only accepts .zip output.  Rename the completed zip
+    # afterwards to the VS Code-supported .vsix extension.
+    Compress-Archive -Path (Join-Path $stage "*") -DestinationPath $vsixZip -CompressionLevel Optimal
+    Move-Item -LiteralPath $vsixZip -Destination $vsix -Force
+
+    $acode = Join-Path $OutputDirectory "acode-plugin-block-2.2.0.zip"
+    if (Test-Path -LiteralPath $acode) { Remove-Item -LiteralPath $acode -Force }
+    Compress-Archive -Path (Join-Path $root "acode-plugin-block\*") -DestinationPath $acode -CompressionLevel Optimal
+    Write-Output "Created $vsix"
+    Write-Output "Created $acode"
+}
+finally {
+    if (Test-Path -LiteralPath $stage) { Remove-Item -LiteralPath $stage -Recurse -Force }
+}
