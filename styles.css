@@ -45,6 +45,9 @@ main, .site-footer, footer { position: relative; z-index: 2; }
 .nav-github::after { display: none !important; }
 .nav-github:hover { border-color: #fff; background: #fff; color: #000 !important; }
 .nav-github span { font-size: .9rem; line-height: 1; }
+.hero-note { margin-top: 1rem; color: #777; font-size: .78rem; letter-spacing: .02em; }
+.hero-note a { color: #d7d7d7; text-underline-offset: .22em; }
+.hero-note a:hover { color: #fff; }
 .nav-toggle { display: none; width: 42px; height: 42px; border: 1px solid var(--line); background: #080808; }
 .nav-toggle span { display: block; width: 16px; height: 1px; margin: 5px auto; background: #fff; transition: transform .25s; }
 

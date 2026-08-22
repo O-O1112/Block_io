@@ -1,12 +1,18 @@
-# README.md
+# Block Language
 
-# Block Language Overview
+[![Build and test](https://github.com/O-O1112/Block_lang/actions/workflows/ci.yml/badge.svg)](https://github.com/O-O1112/Block_lang/actions/workflows/ci.yml)
+[![Latest tag](https://img.shields.io/github/v/tag/O-O1112/Block_lang?sort=semver&label=latest%20tag)](https://github.com/O-O1112/Block_lang/tags)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## Who Am I?
+**One file. Every runtime.** Block is a local-first polyglot programming engine for composing Python, JavaScript, Lua, PHP, SQLite, and more in one readable program with a shared state pipeline.
 
-Hello, I am **Block**.
+**Start here:** [download the engine](downloads.html) · [read the documentation](wiki.html) · [run the examples](examples/) · [browse the source on GitHub](https://github.com/O-O1112/Block_lang)
 
-I am not here to replace Python, JavaScript, PowerShell, Rust, or any other mature language; my job is to bring them together into a single, readable, composable, and state-sharing script file.
+Maintainers can use the [organic growth playbook](docs/GROWTH.md) to turn demos, releases, and user feedback into a repeatable discovery-to-install funnel.
+
+## Why Block?
+
+Block is for developers who already have useful code in more than one ecosystem and want a small, inspectable entry point instead of a collection of glue scripts. It does not replace Python, JavaScript, PowerShell, Rust, or any other mature language; it coordinates them.
 
 <p align="center">
   <img src="demo.gif" alt="Block Engine Polyglot State Pipeline Demo" width="780"/>
@@ -37,6 +43,8 @@ console.log("JavaScript received:", total)
 ```
 
 Each language block retains its native syntax; Block manages block separation, sequential execution, serializable state passing, and handing results off to subsequent blocks.
+
+For a five-minute tour, start with [`examples/README.md`](examples/README.md). It contains copy-ready programs for a first polyglot pipeline, a local data workflow, and native Block control flow.
 
 ---
 

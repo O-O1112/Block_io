@@ -1,0 +1,15 @@
+<py>
+name = "Block"
+numbers = [1, 2, 3, 4]
+total = sum(numbers)
+</py>
+
+<js>
+const average = total / numbers.length;
+console.log(`Hello, ${name}. Total=${total}, average=${average}`);
+</js>
+
+<html>
+<h1>Hello, {{name}}</h1>
+<p>Total: {{total}}</p>
+</html>

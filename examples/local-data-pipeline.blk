@@ -1,0 +1,11 @@
+<py>
+sales = [120, 80, 160, 140]
+total_sales = sum(sales)
+peak_sales = max(sales)
+days = len(sales)
+</py>
+
+<js>
+const average_sales = total_sales / days;
+console.log(`sales report: total=${total_sales}, peak=${peak_sales}, average=${average_sales}`);
+</js>

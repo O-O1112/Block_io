@@ -1,0 +1,7 @@
+score = 80
+if score >= 60:
+    result = "pass"
+else:
+    result = "retry"
+block
+print(result)
