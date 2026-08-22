@@ -3,6 +3,15 @@
     "displayName": "Block Language (Polyglot Orchestrator)",
     "description": "Official VS Code Extension for Block Engine v2.2.0 (Ecosystem Edition)",
     "version": "2.2.0",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/O-O1112/Block_lang.git"
+    },
+    "bugs": {
+        "url": "https://github.com/O-O1112/Block_lang/issues"
+    },
+    "homepage": "https://github.com/O-O1112/Block_lang#readme",
     "publisher": "block-team",
     "icon": "icon.png",
     "main": "./extension.js",

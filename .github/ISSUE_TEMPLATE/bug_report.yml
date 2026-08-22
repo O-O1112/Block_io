@@ -1,0 +1,50 @@
+name: Bug report
+description: Report a reproducible problem in the engine, installer, or plugins.
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For security vulnerabilities, do not use this form. Follow [SECURITY.md](../../SECURITY.md).
+  - type: input
+    id: version
+    attributes:
+      label: Version and edition
+      description: For example, 2.2.0 Standard, Lite, Plus, VS Code extension, or Acode plugin.
+      placeholder: 2.2.0 Standard
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Include Windows version and relevant runtime versions.
+      placeholder: Windows 11 x64, Python 3.12, Node.js 22
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Provide the smallest safe script or a link to a minimal example.
+      placeholder: |
+        1. Create ...
+        2. Run ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and logs
+      description: Remove secrets, tokens, private paths, and personal data before posting.
+    validations:
+      required: true

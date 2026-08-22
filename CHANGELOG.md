@@ -111,4 +111,8 @@ See git history for details on previous versions.
 
 ## Contributing
 
-To report issues or suggest improvements, visit: https://github.com/O-O1112/Block_lang/issues
+To report issues or suggest improvements, visit:
+https://github.com/O-O1112/Block_lang/issues
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and
+[SECURITY.md](SECURITY.md) for private vulnerability reports.

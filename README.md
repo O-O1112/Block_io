@@ -503,6 +503,20 @@ directory map and the compatibility rules for published files.
 
 ---
 
+## Documentation, contribution, and license
+
+- [Markdown Wiki](docs/wiki/README.md)
+- [Contributing guide](CONTRIBUTING.md)
+- [Security policy](SECURITY.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [MIT License](LICENSE)
+
+The visual documentation site is available from [`wiki.html`](wiki.html). The
+Markdown Wiki is the reviewable source for the same installation, syntax,
+architecture, and troubleshooting topics.
+
+---
+
 ## A Note for Newcomers
 
 **Leave the language to the language; let Block handle the flow.**

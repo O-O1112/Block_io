@@ -1,0 +1,28 @@
+# Security policy
+
+## Supported versions
+
+Security fixes are currently developed against the `main` branch and the
+latest published 2.2.0 release.
+
+## Reporting a vulnerability
+
+Please do not disclose an exploitable vulnerability in a public issue. Use a
+private GitHub Security Advisory or contact the repository maintainer through
+the [Block Language GitHub profile](https://github.com/O-O1112).
+
+Include, when safe to share:
+
+- affected version, edition, operating system, and runtime;
+- a minimal reproduction or proof of concept;
+- impact and the attacker capabilities required; and
+- relevant logs with secrets and personal data removed.
+
+The engine executes local language runtimes, so reports involving command
+execution, path traversal, process isolation, state injection, installer
+behavior, or secret exposure should include the exact invocation and file
+layout used.
+
+Please allow time for assessment and a fix before public disclosure. Do not
+upload credentials, certificates, private keys, or malicious samples containing
+real user data.

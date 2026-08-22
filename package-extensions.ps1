@@ -16,6 +16,10 @@ try {
     Get-ChildItem -LiteralPath $vsixSource -Force | Where-Object {
         $_.Name -notin @("extension.vsixmanifest", "[Content_Types].xml", "block-language-2.2.0.vsix")
     } | Copy-Item -Destination (Join-Path $stage "extension") -Recurse -Force
+    $license = Join-Path $root "LICENSE"
+    if (Test-Path -LiteralPath $license) {
+        Copy-Item -LiteralPath $license -Destination (Join-Path $stage "extension") -Force
+    }
 
     $vsix = Join-Path $OutputDirectory "block-language-2.2.0.vsix"
     $vsixZip = Join-Path $OutputDirectory "block-language-2.2.0.package.zip"
@@ -28,7 +32,13 @@ try {
 
     $acode = Join-Path $OutputDirectory "acode-plugin-block-2.2.0.zip"
     if (Test-Path -LiteralPath $acode) { Remove-Item -LiteralPath $acode -Force }
-    Compress-Archive -Path (Join-Path $root "acode-plugin-block\*") -DestinationPath $acode -CompressionLevel Optimal
+    $acodeStage = Join-Path $stage "acode-plugin-block"
+    New-Item -ItemType Directory -Force -Path $acodeStage | Out-Null
+    Copy-Item -Path (Join-Path $root "acode-plugin-block\*") -Destination $acodeStage -Recurse -Force
+    if (Test-Path -LiteralPath $license) {
+        Copy-Item -LiteralPath $license -Destination $acodeStage -Force
+    }
+    Compress-Archive -Path (Join-Path $acodeStage "*") -DestinationPath $acode -CompressionLevel Optimal
     Write-Output "Created $vsix"
     Write-Output "Created $acode"
 }

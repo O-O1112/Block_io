@@ -13,6 +13,7 @@ continue to work.
 | `block-vscode-extension/` | VS Code language extension source and manifest. |
 | `acode-plugin-block/` | Acode plugin source and manifest. |
 | `docs/` | Maintainer documentation and repository notes. |
+| `docs/wiki/` | Version-controlled Markdown Wiki source. |
 
 ## Root-level files
 
@@ -28,6 +29,16 @@ continue to work.
 | `block-language-2.2.0.vsix` | Published VS Code extension package. |
 | `acode-plugin-block-2.2.0.zip` | Published Acode plugin package. |
 | `SHA256SUMS.txt` | SHA-256 checksums for the published engine binaries. |
+
+## Project governance
+
+| Path | Purpose |
+| --- | --- |
+| `LICENSE` | MIT license for the project. |
+| `CONTRIBUTING.md` | Development and pull request workflow. |
+| `SECURITY.md` | Private vulnerability reporting guidance. |
+| `CODE_OF_CONDUCT.md` | Community participation standards. |
+| `.github/ISSUE_TEMPLATE/` | Structured bug and feature reports. |
 
 Historical packages remain at the root for backwards compatibility. Before
 moving or removing any release artifact, search the site files for references
