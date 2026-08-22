@@ -6,6 +6,10 @@ the root-level `wiki*.html` pages. Keeping this Markdown copy in the repository
 makes the guides reviewable, searchable, and available even when GitHub's
 separate Wiki feature is not enabled.
 
+`Home.md`, `_Sidebar.md`, and `_Footer.md` are included so this directory can
+be published directly as a GitHub Wiki once the repository's Wiki feature is
+enabled under GitHub Settings → General → Features → Wikis.
+
 ## Pages
 
 - [Installation](Installation.md) — editions, installer setup, and verification.
