@@ -16,6 +16,15 @@ All notable changes to the Block execution engine will be documented in this fil
 - **Improved** error recovery in malformed code blocks
 - **Enhanced** line number tracking for more accurate error reporting
 
+#### Native Block Language Core
+- **Added** `elif`, `break`, and `continue` to native Block control flow
+- **Added** list and dictionary literals with safe indexing and assignment
+- **Added** `.length` / `.count` members and deterministic collection/string built-ins
+- **Added** conversion, inspection, membership, key/value, and sum built-ins
+- **Fixed** function-local assignments leaking into the shared state
+- **Fixed** identifiers such as `printer` being misread as malformed `print` calls
+- **Added** regression coverage for native programs that run without another language runtime
+
 #### IDE Plugin Compatibility Update
 - **Updated** VS Code extension syntax highlighting for v2.2 block syntax
 - **Fixed** Acode mobile editor serialization issues
@@ -54,6 +63,13 @@ All notable changes to the Block execution engine will be documented in this fil
 - **Fixed** WinGet assisted setup configuration
 
 ### 🔧 Tooling & CLI
+
+#### CLI Diagnostics and Explicit Execution
+- **Added** `run <file>` as an explicit execution form while preserving the original file-only form
+- **Added** `check <file>` to Lite, Standard, and Plus editions
+- **Added** read-only `info`, `capabilities`, `runtimes`, and `doctor` commands
+- **Added** `config show` and `config path` for non-interactive configuration inspection
+- **Added** `project` as an alias for the Standard and Plus local ecosystem commands
 
 #### Installer: Fixed PATH Environment Propagation
 - **Fixed** Windows PATH environment variable not being set correctly

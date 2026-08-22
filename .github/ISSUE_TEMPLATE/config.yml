@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/O-O1112/Block_lang/blob/main/SECURITY.md
+    about: Report security issues privately; do not post exploitable details in a public issue.
+  - name: Documentation and Wiki
+    url: https://github.com/O-O1112/Block_lang/tree/main/docs
+    about: Read the maintained documentation before opening a support question.
+  - name: External validation report
+    url: https://github.com/O-O1112/Block_lang/issues/new?template=validation_report.yml
+    about: Share a reproducible test, integration, tutorial, or independent review.

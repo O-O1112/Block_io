@@ -1,0 +1,35 @@
+name: Publish Block Engine release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  publish-release:
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build and verify release artifacts
+        shell: powershell
+        run: .\build-release.ps1 -ReleaseDirectory (Join-Path $PWD 'release')
+
+      - name: Run complete release test suite
+        shell: powershell
+        run: |
+          .\tests\Test-BlockEngine.ps1 -EngineDirectory (Join-Path $PWD 'release')
+          .\tests\Test-BlockCli.ps1 -EngineDirectory (Join-Path $PWD 'release')
+          .\tests\Test-NativeLanguage.ps1 -EngineDirectory (Join-Path $PWD 'release')
+          .\tests\Test-NativeInterpreter.ps1 -SourcePath (Join-Path $PWD 'src\NativeBlockProgram.cs')
+
+      - name: Publish GitHub release
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" (Get-ChildItem -LiteralPath (Join-Path $PWD 'release') -File | ForEach-Object FullName) --title "Block Engine ${{ github.ref_name }}" --generate-notes

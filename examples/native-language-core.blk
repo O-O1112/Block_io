@@ -1,0 +1,19 @@
+numbers = [1, 2, 3, 4]
+total = 0
+
+for number in numbers:
+    if number == 2:
+        continue
+    block
+    total = total + number
+block
+
+profile = {"name": "Block", "total": total}
+
+func greet(name):
+    return "Hello " + name
+block
+
+print(greet(profile["name"]))
+print(profile.total)
+print(len(numbers))

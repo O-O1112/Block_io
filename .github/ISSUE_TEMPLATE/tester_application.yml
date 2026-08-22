@@ -1,0 +1,63 @@
+name: Volunteer tester
+description: Volunteer for a short, independent Block test
+title: "[Tester] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping test Block. Please do not include passwords, tokens, private files, or other sensitive information.
+
+        Read the [tester packet](https://github.com/O-O1112/Block_lang/blob/main/docs/TESTER-PACKET.md) before applying.
+  - type: input
+    id: environment
+    attributes:
+      label: Windows environment
+      description: Include Windows version and x64/ARM64 if known.
+      placeholder: Windows 11 24H2 x64
+    validations:
+      required: true
+  - type: textarea
+    id: runtimes
+    attributes:
+      label: Available runtimes
+      description: List only runtimes you are comfortable using, such as Python, Node.js, Ruby, or PHP.
+      placeholder: Python 3.12; Node.js 22
+    validations:
+      required: false
+  - type: checkboxes
+    id: test_types
+    attributes:
+      label: What would you like to test?
+      options:
+        - label: Native Block example
+        - label: Python/Node.js polyglot example
+        - label: Installer and installation path
+        - label: Error handling and usability
+        - label: A small real workflow
+    validations:
+      required: true
+  - type: textarea
+    id: availability
+    attributes:
+      label: Availability and context
+      description: Tell us roughly when you can test and whether you are a developer, teacher, student, or automation builder. Do not provide personal contact details here.
+      placeholder: I can spend 15 minutes this week; I mainly build small automation scripts.
+    validations:
+      required: true
+  - type: dropdown
+    id: anonymous_summary
+    attributes:
+      label: Anonymous summary permission
+      description: May the project summarize your findings without identifying you?
+      options:
+        - "Yes"
+        - "No"
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety acknowledgement
+      options:
+        - label: I will run only scripts I have inspected and trust, and I will not submit secrets or private data.
+          required: true

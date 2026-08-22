@@ -14,6 +14,16 @@ namespace BlockEngine
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
             ".blocklang", "config.json");
 
+        public static string GetConfigPath()
+        {
+            return configPath;
+        }
+
+        public static bool ConfigFileExists
+        {
+            get { return File.Exists(configPath); }
+        }
+
         // M8: Fix: File lock to prevent concurrent read/write corruption
         private static readonly SemaphoreSlim _configLock = new SemaphoreSlim(1, 1);
 

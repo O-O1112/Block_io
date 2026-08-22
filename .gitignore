@@ -2,6 +2,7 @@
 /bin/
 /ci-release/
 /release/
+/_release/
 /obj/
 *.user
 *.suo
@@ -24,3 +25,6 @@
 
 # Keep the release files at the repository root tracked: GitHub Pages uses
 # their stable download paths.
+
+# Keep promotional video and media production files local.
+/media/

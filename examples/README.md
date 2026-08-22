@@ -12,6 +12,7 @@ These examples are intentionally small and copy-ready. They are useful for evalu
 block .\examples\hello-polyglot.blk
 block .\examples\local-data-pipeline.blk
 block .\examples\native-control-flow.blk
+block .\examples\native-language-core.blk
 ```
 
 The first two examples use Python and Node.js. `native-control-flow.blk` uses the built-in Block syntax and does not need another runtime.
@@ -22,6 +23,7 @@ The first two examples use Python and Node.js. `native-control-flow.blk` uses th
 | --- | --- | --- |
 | [`hello-polyglot.blk`](hello-polyglot.blk) | Python creates state, JavaScript consumes it, and HTML presents the result | Standard |
 | [`local-data-pipeline.blk`](local-data-pipeline.blk) | A small local data workflow with Python preparation and JavaScript reporting | Standard |
-| [`native-control-flow.blk`](native-control-flow.blk) | Variables, conditions, and output using Block-native syntax | Standard |
+| [`native-control-flow.blk`](native-control-flow.blk) | Variables, conditions, and output using Block-native syntax | All editions |
+| [`native-language-core.blk`](native-language-core.blk) | Collections, indexing, functions, built-ins, and loop control | All editions |
 
 Block delegates each language block to the corresponding local runtime. Install Python or Node.js separately when an example needs it, and never run scripts you do not trust.
