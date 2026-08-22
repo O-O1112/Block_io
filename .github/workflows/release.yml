@@ -32,4 +32,19 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ github.ref_name }}" (Get-ChildItem -LiteralPath (Join-Path $PWD 'release') -File | ForEach-Object FullName) --title "Block Engine ${{ github.ref_name }}" --generate-notes
+          $tag = "${{ github.ref_name }}"
+          $repo = $env:GITHUB_REPOSITORY
+          $assets = @(Get-ChildItem -LiteralPath (Join-Path $PWD 'release') -File | ForEach-Object FullName)
+
+          if ($assets.Count -eq 0) {
+            throw 'No release assets were produced.'
+          }
+
+          # Keep the workflow idempotent: a manually-created release should be
+          # updated instead of causing `gh release create` to fail.
+          gh release view $tag --repo $repo *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag @assets --repo $repo --clobber
+          } else {
+            gh release create $tag @assets --repo $repo --title "Block Engine $tag" --generate-notes
+          }
