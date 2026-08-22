@@ -14,6 +14,7 @@ continue to work.
 | `acode-plugin-block/` | Acode plugin source and manifest. |
 | `docs/` | Maintainer documentation and repository notes. |
 | `docs/wiki/` | Version-controlled Markdown Wiki source. |
+| `tests/` | Windows PowerShell engine smoke tests. |
 
 ## Root-level files
 
@@ -22,6 +23,9 @@ continue to work.
 | `Installer.cs` | Windows installer source. |
 | `build.ps1` | Builds the three engine editions into `bin/`. |
 | `package-extensions.ps1` | Packages the VS Code and Acode extensions. |
+| `package-engine.ps1` | Packages each built engine into its matching ZIP. |
+| `build-installer.ps1` | Rebuilds the installer with the three engine ZIP resources. |
+| `build-release.ps1` | Runs the complete build, packaging, hashing, and verification flow. |
 | `verify-release.ps1` | Verifies versions, hashes, and required release files. |
 | `index.html`, `downloads.html`, `wiki*.html`, `styles.css`, `script.js` | GitHub Pages site. |
 | `block.exe`, `block-lite.exe`, `block-plus.exe` | Published engine binaries. |
@@ -49,8 +53,8 @@ and verify the resulting GitHub Pages URLs.
 From a Windows checkout:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\build.ps1
-powershell -ExecutionPolicy Bypass -File .\package-extensions.ps1
+powershell -ExecutionPolicy Bypass -File .\build-release.ps1
+powershell -ExecutionPolicy Bypass -File .\tests\Test-BlockEngine.ps1 -EngineDirectory .
 powershell -ExecutionPolicy Bypass -File .\verify-release.ps1
 ```
 

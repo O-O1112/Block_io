@@ -510,6 +510,7 @@ directory map and the compatibility rules for published files.
 - [Security policy](SECURITY.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 - [MIT License](LICENSE)
+- [v2.2.0 release manifest](docs/RELEASE-2.2.0.md)
 
 The visual documentation site is available from [`wiki.html`](wiki.html). The
 Markdown Wiki is the reviewable source for the same installation, syntax,

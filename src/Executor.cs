@@ -37,7 +37,7 @@ namespace BlockEngine
         }
                     else if (string.Equals(block.Language, "del", StringComparison.OrdinalIgnoreCase))
                     {
-                        NativeBlockRuntime.Delete(block.Code, currentState, outputCallback);
+                        NativeStateOperations.Delete(block.Code, currentState, outputCallback);
                     }
                     else if (block.Language == "html" || block.Language == "json")
                     {

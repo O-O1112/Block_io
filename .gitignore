@@ -1,5 +1,7 @@
 # Local build output
 /bin/
+/ci-release/
+/release/
 /obj/
 *.user
 *.suo

@@ -1,0 +1,32 @@
+name: Build and test Block Engine
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  windows-build-test:
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build release artifacts
+        shell: powershell
+        run: .\build-release.ps1 -ReleaseDirectory (Join-Path $PWD 'ci-release')
+
+      - name: Run engine smoke tests
+        shell: powershell
+        run: .\tests\Test-BlockEngine.ps1 -EngineDirectory (Join-Path $PWD 'ci-release')
+
+      - name: Upload release verification bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: block-engine-release-${{ github.sha }}
+          path: ci-release
+          if-no-files-found: error

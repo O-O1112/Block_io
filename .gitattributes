@@ -1,0 +1,18 @@
+* text=auto
+SHA256SUMS.txt text eol=lf
+*.cs text
+*.ps1 text
+*.js text
+*.json text
+*.md text
+*.html text
+*.css text
+*.xml text
+*.yml text
+*.yaml text
+*.exe binary
+*.zip binary
+*.vsix binary
+*.gif binary
+*.ico binary
+*.png binary

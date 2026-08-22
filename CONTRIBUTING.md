@@ -16,9 +16,14 @@ The supported maintainer workflow is Windows-based:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\build.ps1
+powershell -ExecutionPolicy Bypass -File .\package-engine.ps1
+powershell -ExecutionPolicy Bypass -File .\build-installer.ps1
 powershell -ExecutionPolicy Bypass -File .\package-extensions.ps1
 powershell -ExecutionPolicy Bypass -File .\verify-release.ps1
 ```
+
+For a complete clean release build, use `build-release.ps1`. The smoke tests
+can be run against its output with `tests\Test-BlockEngine.ps1`.
 
 Changes to the engine belong in `src/`. Changes to the editor integrations
 belong in `block-vscode-extension/` or `acode-plugin-block/`. Keep generated

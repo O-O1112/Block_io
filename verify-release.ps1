@@ -1,37 +1,134 @@
 param(
-    [string]$ReleaseDirectory = $PSScriptRoot
+    [string]$ReleaseDirectory = $PSScriptRoot,
+    [switch]$SkipExecutableExecution
 )
 
 $ErrorActionPreference = 'Stop'
+$ReleaseDirectory = [IO.Path]::GetFullPath($ReleaseDirectory)
 $bin = Join-Path $ReleaseDirectory 'bin'
-if (-not (Test-Path -LiteralPath $bin)) {
-    # GitHub Pages publishes the release binaries from the repository root.
-    # Local builds may keep them under .\bin, so support both layouts.
+if (Test-Path -LiteralPath (Join-Path $ReleaseDirectory 'block.exe')) {
     $bin = $ReleaseDirectory
 }
-$expected = @('block.exe', 'block-lite.exe', 'block-plus.exe')
 $failures = New-Object System.Collections.Generic.List[string]
-
-foreach ($name in $expected) {
-    $path = Join-Path $bin $name
-    if (-not (Test-Path -LiteralPath $path)) { $failures.Add("missing $name"); continue }
-    $version = (& $path --version 2>&1 | Out-String).Trim()
-    if ($version -notmatch 'v2\.2\.0') { $failures.Add("$name is not v2.2.0: $version") }
+$coreNames = @('block.exe', 'block-lite.exe', 'block-plus.exe')
+$requiredArtifacts = @(
+    'block.exe', 'block-lite.exe', 'block-plus.exe',
+    'block.zip', 'block-lite.zip', 'block-plus.zip',
+    'BlockSetup-v2.2.0.exe', 'BlockSetup.exe',
+    'block-language-2.2.0.vsix', 'acode-plugin-block-2.2.0.zip'
+)
+$expectedVersions = @{
+    'block.exe' = 'Block Language Engine v2.2.0 (Standard Edition)'
+    'block-lite.exe' = 'Block Lite Engine v2.2.0 (Lite Edition)'
+    'block-plus.exe' = 'Block+ Engine v2.2.0 (Flagship Edition)'
 }
 
-$hashFile = Join-Path $bin 'SHA256SUMS.txt'
-if (Test-Path -LiteralPath $hashFile) {
-    foreach ($line in Get-Content -LiteralPath $hashFile) {
-        if ($line -notmatch '^([0-9a-fA-F]{64})\s+(.+)$') { $failures.Add("invalid hash line: $line"); continue }
-        $path = Join-Path $bin $Matches[2]
-        if (-not (Test-Path -LiteralPath $path)) { $failures.Add("hash target missing: $($Matches[2])"); continue }
-        $actual = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
-        if ($actual -ne $Matches[1]) { $failures.Add("hash mismatch: $($Matches[2])") }
+foreach ($name in $coreNames) {
+    $path = Join-Path $bin $name
+    if (-not (Test-Path -LiteralPath $path)) {
+        $failures.Add("missing engine: $name")
+        continue
+    }
+    if (-not $SkipExecutableExecution) {
+        $version = (& $path --version 2>&1 | Out-String).Trim()
+        if ($version -notmatch [regex]::Escape($expectedVersions[$name])) {
+            $failures.Add("wrong engine version for ${name}: $version")
+        }
     }
 }
 
-foreach ($package in @('block-language-2.2.0.vsix', 'acode-plugin-block-2.2.0.zip', 'BlockSetup-v2.2.0.exe')) {
-    if (-not (Test-Path -LiteralPath (Join-Path $ReleaseDirectory $package))) { $failures.Add("missing package: $package") }
+foreach ($name in $requiredArtifacts) {
+    $path = if ($coreNames -contains $name) { Join-Path $bin $name } else { Join-Path $ReleaseDirectory $name }
+    if (-not (Test-Path -LiteralPath $path)) { $failures.Add("missing release artifact: $name") }
+}
+
+$hashFile = Join-Path $ReleaseDirectory 'SHA256SUMS.txt'
+$hashes = @{}
+if (-not (Test-Path -LiteralPath $hashFile)) {
+    $failures.Add('missing SHA256SUMS.txt')
+} else {
+    foreach ($line in Get-Content -LiteralPath $hashFile) {
+        if ([string]::IsNullOrWhiteSpace($line)) { continue }
+        if ($line -notmatch '^([0-9a-fA-F]{64})\s+(.+)$') {
+            $failures.Add("invalid hash line: $line")
+            continue
+        }
+        $hashes[$Matches[2]] = $Matches[1].ToLowerInvariant()
+    }
+    foreach ($name in $requiredArtifacts) {
+        $path = if ($coreNames -contains $name) { Join-Path $bin $name } else { Join-Path $ReleaseDirectory $name }
+        if (-not (Test-Path -LiteralPath $path)) { continue }
+        if (-not $hashes.ContainsKey($name)) {
+            $failures.Add("hash missing from SHA256SUMS.txt: $name")
+            continue
+        }
+        $actual = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($actual -ne $hashes[$name]) { $failures.Add("hash mismatch: $name") }
+    }
+}
+
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$tempRoot = Join-Path ([IO.Path]::GetTempPath()) ('block-verify-' + [Guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Force -Path $tempRoot | Out-Null
+try {
+    $bundles = @(
+        @{ Archive = 'block-lite.zip'; Executable = 'block-lite.exe' },
+        @{ Archive = 'block.zip'; Executable = 'block.exe' },
+        @{ Archive = 'block-plus.zip'; Executable = 'block-plus.exe' }
+    )
+    foreach ($bundle in $bundles) {
+        $archive = Join-Path $ReleaseDirectory $bundle.Archive
+        $destination = Join-Path $tempRoot ([IO.Path]::GetFileNameWithoutExtension($bundle.Archive))
+        if (-not (Test-Path -LiteralPath $archive)) { continue }
+        try {
+            [IO.Compression.ZipFile]::ExtractToDirectory($archive, $destination)
+            $files = @(Get-ChildItem -LiteralPath $destination -Recurse -File)
+            $exe = @($files | Where-Object { $_.Name -eq $bundle.Executable })
+            if ($exe.Count -ne 1) {
+                $failures.Add("bundle does not contain exactly one $($bundle.Executable): $($bundle.Archive)")
+                continue
+            }
+            $rootExe = Join-Path $bin $bundle.Executable
+            $bundleHash = (Get-FileHash -LiteralPath $exe[0].FullName -Algorithm SHA256).Hash
+            $rootHash = (Get-FileHash -LiteralPath $rootExe -Algorithm SHA256).Hash
+            if ($bundleHash -ne $rootHash) { $failures.Add("bundle executable differs from published engine: $($bundle.Archive)") }
+            if ($files.Count -ne 1) { $failures.Add("unexpected files in engine bundle: $($bundle.Archive)") }
+        } catch {
+            $failures.Add("cannot inspect engine bundle $($bundle.Archive): $($_.Exception.Message)")
+        }
+    }
+
+    $pluginPackages = @(
+        @{ Archive = 'block-language-2.2.0.vsix'; Manifest = 'extension/package.json'; License = 'extension/LICENSE' },
+        @{ Archive = 'acode-plugin-block-2.2.0.zip'; Manifest = 'plugin.json'; License = 'LICENSE' }
+    )
+    foreach ($package in $pluginPackages) {
+        $archive = Join-Path $ReleaseDirectory $package.Archive
+        $destination = Join-Path $tempRoot ([IO.Path]::GetFileNameWithoutExtension($package.Archive))
+        if (-not (Test-Path -LiteralPath $archive)) { continue }
+        try {
+            [IO.Compression.ZipFile]::ExtractToDirectory($archive, $destination)
+            $manifestPath = Join-Path $destination $package.Manifest
+            $licensePath = Join-Path $destination $package.License
+            if (-not (Test-Path -LiteralPath $manifestPath)) { $failures.Add("missing manifest in $($package.Archive)"); continue }
+            if (-not (Test-Path -LiteralPath $licensePath)) { $failures.Add("missing LICENSE in $($package.Archive)") }
+            $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+            if ($manifest.version -ne '2.2.0') { $failures.Add("wrong package version in $($package.Archive): $($manifest.version)") }
+            if ($manifest.license -ne 'MIT') { $failures.Add("missing MIT metadata in $($package.Archive)") }
+        } catch {
+            $failures.Add("cannot inspect plugin package $($package.Archive): $($_.Exception.Message)")
+        }
+    }
+} finally {
+    if (Test-Path -LiteralPath $tempRoot) { Remove-Item -LiteralPath $tempRoot -Recurse -Force }
+}
+
+$setupHash = Join-Path $ReleaseDirectory 'BlockSetup-v2.2.0.exe'
+$stableHash = Join-Path $ReleaseDirectory 'BlockSetup.exe'
+if ((Test-Path -LiteralPath $setupHash) -and (Test-Path -LiteralPath $stableHash)) {
+    if ((Get-FileHash -LiteralPath $setupHash -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $stableHash -Algorithm SHA256).Hash) {
+        $failures.Add('BlockSetup.exe is not identical to BlockSetup-v2.2.0.exe')
+    }
 }
 
 if ($failures.Count -gt 0) {
