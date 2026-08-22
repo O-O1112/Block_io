@@ -58,14 +58,43 @@ namespace BlockEngine
                 return;
             }
 
+            if (arg0 == "runtimes" || arg0 == "doctor")
+            {
+                CliCommands.RunRuntimes(arg0 == "doctor");
+                return;
+            }
+
+            if (arg0 == "info" || arg0 == "capabilities")
+            {
+                string infoPath = args.Length > 1 ? JoinCommandLinePath(args, 1) : null;
+                CliCommands.RunInfo(infoPath);
+                return;
+            }
+
+            if (arg0 == "check" && args.Length > 1)
+            {
+                CliCommands.RunCheck(JoinCommandLinePath(args, 1));
+                return;
+            }
+
             if (arg0 == "config")
             {
+                if (args.Length > 1 && string.Equals(args[1], "path", StringComparison.OrdinalIgnoreCase))
+                {
+                    CliCommands.RunConfigPath();
+                    return;
+                }
+                if (args.Length > 1 && string.Equals(args[1], "show", StringComparison.OrdinalIgnoreCase))
+                {
+                    CliCommands.RunConfigShow();
+                    return;
+                }
                 Config.RunSettingsCLI();
                 return;
             }
 
 #if !BLOCK_LITE
-            if (arg0 == "ecosystem" || arg0 == "eco" || arg0 == "pkg")
+            if (arg0 == "ecosystem" || arg0 == "eco" || arg0 == "pkg" || arg0 == "project")
             {
                 Ecosystem.RunCli(args);
                 return;
@@ -94,11 +123,6 @@ namespace BlockEngine
                 RunFmtCLI(JoinCommandLinePath(args, 1));
                 return;
             }
-            if (args[0].ToLower() == "check" && args.Length > 1)
-            {
-                RunCheckCLI(JoinCommandLinePath(args, 1));
-                return;
-            }
             if (args[0].ToLower() == "doc" && args.Length > 1)
             {
                 RunDocCLI(JoinCommandLinePath(args, 1));
@@ -107,10 +131,19 @@ namespace BlockEngine
 #endif
 
 
+            if (arg0 == "run" && args.Length < 2)
+            {
+                Console.Error.WriteLine("Usage: block run <file>");
+                Environment.ExitCode = 1;
+                return;
+            }
+
             // cmd.exe splits unquoted paths at spaces. For the file-execution
             // form, reassemble the remaining arguments so filenames such as
             // "新文件 1.blkp" still resolve instead of truncating at the space.
-            string scriptArgument = args.Length > 1 ? string.Join(" ", args) : args[0];
+            string scriptArgument = arg0 == "run"
+                ? JoinCommandLinePath(args, 1)
+                : (args.Length > 1 ? string.Join(" ", args) : args[0]);
             string scriptPath = Path.GetFullPath(scriptArgument);
             if (!File.Exists(scriptPath))
             {
@@ -233,20 +266,41 @@ namespace BlockEngine
 
 #if BLOCK_LITE
             Console.WriteLine("Usage: block-lite <file.blkl>");
+            Console.WriteLine("       block-lite run <file.blkl>");
+            Console.WriteLine("       block-lite check <file.blkl>");
+            Console.WriteLine("       block-lite info [file.blkl]");
+            Console.WriteLine("       block-lite capabilities");
+            Console.WriteLine("       block-lite runtimes");
+            Console.WriteLine("       block-lite doctor");
             Console.WriteLine("       block-lite config");
+            Console.WriteLine("       block-lite config show|path");
 #elif BLOCK_PLUS
             Console.WriteLine("Usage: block-plus <file.blkp>");
+            Console.WriteLine("       block-plus run <file.blkp>");
+            Console.WriteLine("       block-plus check <file.blkp>");
+            Console.WriteLine("       block-plus info [file.blkp]");
+            Console.WriteLine("       block-plus capabilities");
+            Console.WriteLine("       block-plus runtimes");
+            Console.WriteLine("       block-plus doctor");
             Console.WriteLine("       block-plus config");
+            Console.WriteLine("       block-plus config show|path");
             Console.WriteLine("       block-plus serve [port]");
-            Console.WriteLine("       block-plus ecosystem init|list|add ...");
+            Console.WriteLine("       block-plus ecosystem|project init|list|add ...");
             Console.WriteLine("       block-plus fmt <file.blkp>");
             Console.WriteLine("       block-plus check <file.blkp>");
             Console.WriteLine("       block-plus doc <file.blkp>");
 #else
             Console.WriteLine("Usage: block <file.blk>");
+            Console.WriteLine("       block run <file.blk>");
+            Console.WriteLine("       block check <file.blk>");
+            Console.WriteLine("       block info [file.blk]");
+            Console.WriteLine("       block capabilities");
+            Console.WriteLine("       block runtimes");
+            Console.WriteLine("       block doctor");
             Console.WriteLine("       block config");
+            Console.WriteLine("       block config show|path");
             Console.WriteLine("       block serve 8080");
-            Console.WriteLine("       block ecosystem init|list|add ...");
+            Console.WriteLine("       block ecosystem|project init|list|add ...");
 #endif
         }
 
@@ -287,27 +341,6 @@ namespace BlockEngine
                 // H9: Fix: Restore backup on failure
                 File.Copy(backupPath, path, overwrite: true);
                 Console.Error.WriteLine("[Block+ Fmt] FAILED and restored original: " + ex.Message);
-                Environment.ExitCode = 1;
-            }
-        }
-
-        static void RunCheckCLI(string filePath)
-        {
-            string path = Path.GetFullPath(filePath);
-            if (!File.Exists(path)) { Console.Error.WriteLine("File not found: " + path); Environment.ExitCode = 1; return; }
-            try
-            {
-                string code = ReadScriptFile(path);
-                var blocks = Parser.ParseBlocks(code, path, Config.LoadConfig());
-                Console.WriteLine("[Block+ Check] Syntax Check Passed! Found " + blocks.Count + " block(s).");
-                foreach (var b in blocks)
-                {
-                    Console.WriteLine(string.Format("  - <{0}> ({1} characters)", b.Language, b.Code.Length));
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine("[Block+ Check] Syntax Check Failed: " + ex.Message);
                 Environment.ExitCode = 1;
             }
         }

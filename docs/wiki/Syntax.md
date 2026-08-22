@@ -36,8 +36,35 @@ print(result)
 ```
 
 The native layer supports assignments, expressions, `if`/`elif`/`else`,
-`while`, `for`, `range`, `func`, and `return`. Indentation is encouraged for
-readability, but the closing `block` keyword defines scope.
+`while`, `for`, `break`, `continue`, `range`, `func`, and `return`. It also
+supports list and dictionary literals, indexing, `.length`/`.count` members,
+and deterministic built-ins such as `len`, `str`, `int`, `float`, `bool`,
+`type`, `contains`, `keys`, `values`, and `sum`. Indentation is encouraged for
+readability, but the closing `block` keyword defines scope. Function parameters
+and assignments are local to the function; functions can read values from the
+surrounding shared state, and collection mutations remain explicit through
+index assignment.
+
+Example with collections and loop control:
+
+```block
+numbers = [1, 2, 3, 4]
+total = 0
+
+for number in numbers:
+    if number == 2:
+        continue
+    block
+    total = total + number
+block
+
+profile = {"name": "Block", "total": total}
+print(profile["name"])
+print(profile.total)
+```
+
+The native core intentionally has no file, network, process, or package APIs.
+Use a tagged runtime block when a workflow needs those capabilities.
 
 ## File extensions
 

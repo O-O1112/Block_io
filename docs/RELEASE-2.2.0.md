@@ -40,3 +40,20 @@ manifests and licenses, and the stable installer alias.
 
 The GitHub Actions workflow repeats the build and smoke tests on a clean
 Windows runner for pushes and pull requests.
+
+## CLI smoke checks
+
+Each edition exposes read-only diagnostics and explicit execution forms:
+
+```powershell
+block --version
+block doctor
+block runtimes
+block config show
+block check .\examples\native-control-flow.blk
+block run .\examples\native-control-flow.blk
+```
+
+The same commands are available through `block-lite` and `block-plus`. The
+Standard and Plus editions additionally support the `project` alias for the
+local `ecosystem` commands.

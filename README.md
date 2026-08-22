@@ -6,9 +6,57 @@
 
 **One file. Every runtime.** Block is a local-first polyglot programming engine for composing Python, JavaScript, Lua, PHP, SQLite, and more in one readable program with a shared state pipeline.
 
-**Start here:** [download the engine](downloads.html) · [read the documentation](wiki.html) · [run the examples](examples/) · [report an external result](docs/THIRD-PARTY-VALIDATION.md) · [browse the source on GitHub](https://github.com/O-O1112/Block_lang)
+**Start here:** [download the engine](downloads.html) · [read the documentation](wiki.html) · [run the examples](examples/) · [read the book source](docs/book/) · [report an external result](docs/THIRD-PARTY-VALIDATION.md) · [browse the source on GitHub](https://github.com/O-O1112/Block_lang)
 
 Maintainers can use the [organic growth playbook](docs/GROWTH.md) to turn demos, releases, and user feedback into a repeatable discovery-to-install funnel.
+
+## At a glance
+
+| Item | Details |
+| --- | --- |
+| Current release | `2.2.0` |
+| Primary platform | Windows 10/11 release workflow |
+| Execution model | Parse one document, run native stages in order, transfer serializable state |
+| Editions | Lite (`.blkl`), Standard (`.blk`), Plus (`.blkp`) |
+| Host runtimes | Python, Node.js, PHP, Lua, Ruby, PowerShell, SQLite, and optional custom runtimes |
+| Editor integrations | VS Code extension and Acode plugin |
+| License | MIT |
+
+## Table of contents
+
+- [Why Block?](#why-block)
+- [How Block works](#how-block-works)
+- [Installation](#installation)
+- [Getting started](#getting-started-in-1-minute)
+- [Editions and file formats](#file-formats-and-editions)
+- [CLI reference](#cli-reference)
+- [Runtime blocks and syntax](#core-syntax-language-blocks)
+- [Native Block control flow](#native-block-control-flow)
+- [Shared state](#shared-state-the-core-power-of-block)
+- [Imports and packages](#importing-external-block-files)
+- [HTML, JSON, and local servers](#html-and-json-output)
+- [Editor extensions](#editor-extensions)
+- [Security model and limits](#security-model)
+- [Troubleshooting](#troubleshooting)
+- [Build, test, and release](#repository-layout-and-release-verification)
+- [Roadmap](#roadmap)
+- [Documentation and contribution](#documentation-contribution-and-license)
+
+## What Block is — and is not
+
+Block is an orchestration language and execution engine. It gives one document a
+clear structure while allowing each stage to remain in the language that is best
+suited to the task. A Python stage can prepare data, a JavaScript stage can call a
+Node package, a SQL stage can query local data, and an HTML or JSON stage can
+present the result.
+
+Block is not a replacement for Python, JavaScript, Lua, PHP, PowerShell, Rust, or
+another mature language. It does not emulate their syntax or bundle every host
+runtime. It coordinates local runtimes and makes the data boundary visible.
+
+That distinction matters when diagnosing failures: a parser error belongs to
+Block, a missing `python.exe` belongs to the host environment, and a package error
+belongs to the runtime that owns the package.
 
 ## Why Block?
 
@@ -45,6 +93,102 @@ console.log("JavaScript received:", total)
 Each language block retains its native syntax; Block manages block separation, sequential execution, serializable state passing, and handing results off to subsequent blocks.
 
 For a five-minute tour, start with [`examples/README.md`](examples/README.md). It contains copy-ready programs for a first polyglot pipeline, a local data workflow, and native Block control flow.
+
+## How Block works
+
+Every Block document follows the same high-level pipeline:
+
+```text
+source file
+    |
+    v
+parse tags, imports, and native statements
+    |
+    v
+validate edition, paths, limits, and runtime policy
+    |
+    v
+run each language stage as a host process
+    |
+    v
+capture output and serializable state
+    |
+    v
+prepare the next stage and continue in source order
+```
+
+The important consequence is that a stage does not share the Python, Node.js, or
+other runtime's memory directly. Block passes a prepared representation of the
+state across the process boundary. This makes the workflow inspectable and
+portable, but it also means that open handles, callbacks, sockets, and live
+database connections cannot be passed to the next stage.
+
+Use Block when you want:
+
+- one readable entry point for a multi-language workflow;
+- explicit data flow instead of hidden environment variables or temporary files;
+- native access to the libraries already installed for each language;
+- local-first automation that can be inspected before execution;
+- a small document that can later be packaged, documented, or served locally.
+
+---
+
+## Installation
+
+### Windows installer
+
+The versioned installer is [`BlockSetup-v2.2.0.exe`](BlockSetup-v2.2.0.exe). The
+stable download alias is [`BlockSetup.exe`](BlockSetup.exe). The same files are
+also linked from the [download page](downloads.html).
+
+1. Run the installer.
+2. Choose the installation directory.
+3. Select Lite, Standard, or Plus. Standard is the recommended general-purpose
+   edition.
+4. Select any optional host runtimes you need.
+5. Open a new PowerShell or Command Prompt window so the updated `PATH` is
+   loaded.
+6. Verify the installed engine:
+
+   ```powershell
+   block --version
+   block --help
+   ```
+
+The core engine and optional runtimes are separate installation tasks. If an
+optional Winget or Chocolatey installation fails, the core engine may still be
+usable. Install the missing runtime manually, confirm it is on `PATH`, and run
+the installer again if you want the checklist refreshed.
+
+### Runtime prerequisites
+
+Block delegates execution to the host tools. Install only the runtimes required by
+your scripts and verify them directly before debugging a Block file:
+
+```powershell
+python --version
+node --version
+php --version
+lua -v
+ruby --version
+```
+
+The exact command may differ by distribution. Block cannot make a missing host
+runtime available, and a runtime's own modules or packages remain managed by that
+runtime.
+
+### Build from source
+
+The v2.2.0 Windows build uses the .NET Framework C# compiler available at
+`%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\build.ps1
+```
+
+This produces `block.exe`, `block-lite.exe`, and `block-plus.exe` in `bin/` and
+creates SHA-256 hashes unless `-SkipHash` is supplied. See the release section
+below for the complete packaging and verification flow.
 
 ---
 
@@ -88,6 +232,58 @@ block-plus   example.blkp
 ```
 
 Available languages and capabilities vary depending on your installed edition, operating system, and local runtimes.
+
+### Choosing an edition
+
+| Edition | Use it when | Advanced features |
+| --- | --- | --- |
+| Lite | You need the smallest local polyglot runner | Basic language blocks and local configuration |
+| Standard | You want the recommended daily-use engine | Imports, local packages, native control flow, and local server support |
+| Plus | You need the broadest runtime and tooling surface | Custom runtime definitions, `fmt`, `check`, `doc`, and extended integrations |
+
+The editions use the same project idea but have different compile-time feature
+surfaces. A script written for Plus may use tags or commands that are not present
+in Lite. When sharing an example, state its required edition and host runtimes.
+
+The editor integrations also recognize the aliases `.block`, `.blocklite`, and
+`.blockplus`, but the command-line edition extensions remain the clearest way to
+communicate which engine is expected.
+
+---
+
+## CLI reference
+
+The executable name depends on the edition. The following commands are available
+in the v2.2.0 Windows build:
+
+| Command | Lite | Standard | Plus | Purpose |
+| --- |:---:|:---:|:---:| --- |
+| `<engine> <file>` | ✓ | ✓ | ✓ | Execute a `.blkl`, `.blk`, or `.blkp` document |
+| `<engine> --version` | ✓ | ✓ | ✓ | Print the engine and edition version |
+| `<engine> --help` | ✓ | ✓ | ✓ | Show the edition-specific usage text |
+| `<engine> config` | ✓ | ✓ | ✓ | Edit runtime, network, timeout, and sandbox settings |
+| `<engine> config show` | ✓ | ✓ | ✓ | Print the active security and sandbox settings without editing them |
+| `<engine> config path` | ✓ | ✓ | ✓ | Print the user configuration file path |
+| `<engine> run <file>` | ✓ | ✓ | ✓ | Explicitly execute a document, including paths containing spaces |
+| `<engine> check <file>` | ✓ | ✓ | ✓ | Parse a document without executing its stages |
+| `<engine> info [file]` / `capabilities` | ✓ | ✓ | ✓ | Show engine settings and optionally inspect a document's blocks |
+| `<engine> runtimes` | ✓ | ✓ | ✓ | Detect optional runtimes on the current `PATH` |
+| `<engine> doctor` | ✓ | ✓ | ✓ | Run read-only environment and configuration diagnostics |
+| `<engine> serve [port]` | — | ✓ | ✓ | Start a local HTTP server document |
+| `<engine> ecosystem ...` / `project ...` | — | ✓ | ✓ | Create, add, and list local packages |
+| `block-plus fmt <file>` | — | — | ✓ | Format a Plus document and keep a `.bak` backup |
+| `block-plus doc <file>` | — | — | ✓ | Generate a `.doc.md` block summary |
+
+Aliases `eco`, `pkg`, and `project` are accepted for `ecosystem`. `run` is an
+explicit execution form; the original `<engine> <file>` form remains supported.
+Paths containing spaces should be quoted:
+
+```powershell
+block-plus "C:\Projects\My Block\main.blkp"
+```
+
+Running an engine without a file displays its animated banner and usage text. In
+automation, prefer an explicit file path and check the process exit code.
 
 ---
 
@@ -147,6 +343,68 @@ Opening and closing tags must match. Always use explicit closing tags (e.g., `</
 
 Supported tags differ across editions. Plus supports custom runtime definitions, though the underlying runtime must be installed.
 
+### Runtime ownership
+
+| Block tag | Executed by | What you must provide |
+| --- | --- | --- |
+| `<py>` / `<python>` | Python | A compatible `python` or `python.exe` on `PATH` |
+| `<js>` / `<javascript>` | Node.js | `node` on `PATH` |
+| `<php>` | PHP | `php` on `PATH` |
+| `<lua>` | Lua | A compatible Lua interpreter |
+| `<ruby>` / `<rb>` | Ruby | Ruby on `PATH` |
+| `<ps>` / `<powershell>` | PowerShell | A permitted PowerShell host; disabled by default in new configurations |
+| `<sql>` | SQLite integration | SQLite support enabled by the selected edition |
+| `<html>` | Block output renderer | No external language runtime; template values must be safe and serializable |
+| `<json>` | Block output renderer | No external language runtime; the rendered document must be valid JSON |
+| `<c>`, `<cpp>`, `<go>`, `<rust>`, `<zig>`, and others | Host compiler/tool | The corresponding compiler and project layout |
+
+The table describes the execution ownership, not a promise that every tag is
+enabled in every edition. A missing executable, incompatible version, or missing
+language package is reported at the host-runtime boundary.
+
+---
+
+## Native Block control flow
+
+In addition to native-language blocks, all editions can execute a small
+Block-native language core. Compound statements end with a standalone `block`
+line.
+Indentation is encouraged for readability, but the terminator defines the scope.
+
+```block
+score = 80
+
+if score >= 60:
+    result = "pass"
+else:
+    result = "retry"
+block
+
+print(result)
+```
+
+The native language core includes:
+
+- assignments and expressions;
+- `if` / `elif` / `else` conditions;
+- `while` loops;
+- `for name in values:` loops;
+- `break` and `continue` loop control;
+- `range(start, end, step)`;
+- `func name(args):` functions;
+- function-local variables with read-only fallback lookup into shared state;
+- list and dictionary literals;
+- list, string, and dictionary indexing such as `items[0]` and `profile["name"]`;
+- `.length` / `.count` members;
+- `len`, `str`, `int`, `float`, `bool`, `type`, `contains`, `keys`, `values`,
+  and `sum` built-ins;
+- `return`, `print`, `pass`, and common arithmetic/comparison operators.
+
+This core is intentionally deterministic and sandboxed: it does not expose
+file, network, process, or package APIs. Use a runtime block when you need the
+standard library, package ecosystem, concurrency model, or advanced syntax of
+Python, JavaScript, Lua, PHP, or another host language.
+
 ---
 
 ## Shared State: The Core Power of Block
@@ -189,6 +447,37 @@ State-sharing operates on these principles:
 4. Any modifications made by the block propagate to downstream blocks.
 
 Avoid placing open file handles, sockets, database connections, functions, or circular references into the shared state, as they cannot be serialized across process boundaries.
+
+### State boundary checklist
+
+Before adding a new value to a cross-runtime workflow, ask:
+
+1. Is the value made only of plain data?
+2. Does the next runtime have an equivalent representation?
+3. Is the value small enough for the configured JSON and request limits?
+4. Does it contain a secret that should stay inside one stage?
+5. Will the receiving language validate the value before using it in a path,
+   command, query, or template?
+
+Prefer a small explicit result object over exporting every local variable. For
+example:
+
+```block
+<py>
+rows = [10, 20, 30]
+result = {
+    "count": len(rows),
+    "total": sum(rows)
+}
+</py>
+
+<js>
+console.log(`count=${result.count}, total=${result.total}`)
+</js>
+```
+
+State transfer is a copy-and-validate operation, not shared memory. Each runtime
+keeps its own types, libraries, error behavior, and security model.
 
 ---
 
@@ -388,6 +677,31 @@ Because this spawns external processes, it is subject to security policy checks.
 
 ---
 
+## Editor extensions
+
+### VS Code
+
+The repository publishes [`block-language-2.2.0.vsix`](block-language-2.2.0.vsix).
+In VS Code, open **Extensions**, choose **Install from VSIX...**, select the
+package, and reload the window if prompted.
+
+The extension provides Block language recognition, syntax highlighting, snippets,
+folding markers, state interpolation highlighting, and commands that invoke the
+local Block executable. It does not bundle Python, Node.js, PHP, Lua, or any other
+host runtime.
+
+### Acode
+
+The mobile editor package is
+[`acode-plugin-block-2.2.0.zip`](acode-plugin-block-2.2.0.zip). Install it through
+Acode's plugin workflow, then configure the local execution command if the device
+or terminal environment uses a non-default path.
+
+Both integrations inherit the same trust boundary as the command-line engine:
+they can launch the local Block executable, which can launch host runtimes.
+
+---
+
 ## Security Model
 
 Block adopts a local-first, conservative security design:
@@ -402,6 +716,42 @@ Block adopts a local-first, conservative security design:
 * Certificates (`.pfx`), passwords, and private keys should never be committed into Block projects.
 
 Security configurations do not replace rigorous code review. Never execute untrusted `.blk`, `.blkl`, or `.blkp` files, as language blocks invoke host runtimes directly.
+
+### Default configuration in v2.2.0
+
+New configurations use conservative defaults:
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| Python / JavaScript / PHP / Ruby / Lua / SQLite | Enabled | These runtimes may be used when installed and supported by the edition |
+| PowerShell | Disabled | Enable only when the script and host environment are trusted |
+| Network guard | Blocked | Runtime network access is restricted by default |
+| Custom `<define>` tags | Disabled | Arbitrary custom process definitions require explicit opt-in |
+| Execution timeout | 15 seconds | Can be changed through `config`, within the engine's allowed range |
+| Import depth | 16 levels | Prevents excessively nested or circular import chains |
+| Imported files | 256 files / 32 MiB | Limits import fan-out and aggregate import size |
+| Script size | 32 MiB | Rejects oversized source documents |
+| Captured output | 1 MiB per stage | Excess output is truncated with a marker |
+
+The process guard tracks child-process trees and terminates descendants after a
+timeout where the host platform supports it. This is process-lifecycle control,
+not a complete operating-system sandbox: a trusted host runtime can still access
+the permissions available to the user running Block.
+
+### Security boundaries to review
+
+- Treat every language block as executable native code.
+- Review imported files and local packages before invoking them.
+- Keep API servers on `localhost` unless you have added an appropriate external
+  authentication and network policy.
+- Do not commit passwords, API tokens, certificates, private keys, or personal
+  data to a Block project.
+- Treat `<define>` commands and PowerShell stages as high-risk capabilities.
+- Validate values again after a runtime boundary; serialization does not make
+  untrusted input safe.
+
+For a vulnerability report, follow [`SECURITY.md`](SECURITY.md) and do not publish
+an exploitable proof of concept in a public issue.
 
 ---
 
@@ -439,9 +789,45 @@ Executable logic must reside inside explicit tags like `<py>...</py>` or `<js>..
 
 ---
 
-## Block+ Tooling
+## Troubleshooting
 
-The Plus edition includes CLI utility commands:
+| Symptom | First checks |
+| --- | --- |
+| `block` is not recognized | Open a new terminal, check the selected install directory, and run the executable by its full path |
+| `Script file not found` | Quote paths containing spaces; confirm the real extension is not hidden by Explorer |
+| Optional runtime installation failed | Install the runtime manually, verify its command on `PATH`, then run the installer again if needed |
+| A language block cannot start | Run the host runtime directly, confirm the selected edition supports the tag, and check both opening and closing tags |
+| State is missing in the next stage | Return plain serializable values and check stage order; handles and functions cannot cross processes |
+| Import is rejected | Confirm the file is inside the configured sandbox, the path is correct, and the import is not circular or too deep |
+| A stage times out | Reduce the input, check for an infinite loop or blocked host command, and review the configured timeout |
+| Output ends with `[output truncated]` | Reduce stage output or write a bounded artifact instead of printing a large stream |
+
+For a support request, include the Block version and edition, Windows version,
+host runtime versions, the smallest safe reproduction, and output with secrets
+and private paths removed. Use the [support guide](SUPPORT.md) for the correct
+issue type. Do not place an exploitable security report in a public issue.
+
+---
+
+## CLI Diagnostics and Block+ Tooling
+
+All editions include read-only diagnostics:
+
+```powershell
+block doctor
+block runtimes
+block config show
+block info examples\hello-polyglot.blk
+block check examples\hello-polyglot.blk
+block run examples\hello-polyglot.blk
+```
+
+`doctor` checks the current edition, Windows environment, optional runtime
+locations, sandbox directory, timeout, and network policy. It does not run a
+Block document or change configuration. `runtimes` only searches `PATH` and
+reads executable metadata; it does not install or launch runtimes.
+
+The Plus edition also includes document tooling:
 
 ```powershell
 block-plus fmt main.blkp
@@ -509,14 +895,95 @@ powershell -ExecutionPolicy Bypass -File .\verify-release.ps1
 See [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md) for the complete
 directory map and the compatibility rules for published files.
 
+### Test the local build
+
+After building into `bin/`, run the Windows smoke suite:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tests\Test-BlockEngine.ps1 -EngineDirectory .\bin
+```
+
+The smoke suite checks all three engine versions, native control flow, Plus
+syntax checking, malformed tag rejection, and the Python-to-Node state bridge
+when both host runtimes are available.
+
+### Package and verify a release
+
+The complete v2.2.0 release flow builds the three engines, creates matching ZIP
+bundles, packages the VS Code and Acode extensions, builds the installer, and
+verifies the published artifacts and hashes:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\build-release.ps1
+```
+
+The release directory should contain the versioned installer, stable installer
+alias, three engine ZIPs, two extension packages, and `SHA256SUMS.txt`. To verify
+an already prepared release without rebuilding it:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\verify-release.ps1
+```
+
+Do not replace a versioned artifact with a hand-built file after verification.
+Re-run the verification step whenever an artifact, manifest, installer, or
+published checksum changes.
+
+---
+
+## v2.2.0 status and known boundaries
+
+Version 2.2.0 is the current documented release line. It includes the Lite,
+Standard, and Plus engines, the Windows installer, the VS Code extension, the
+Acode plugin, native control flow, cross-runtime state synchronization, local
+imports and packages, and the Plus formatting/check/documentation commands.
+
+The following are deliberate boundaries or known limitations rather than hidden
+promises:
+
+- Block still requires the host runtimes used by a document.
+- State must remain serializable; live handles cannot cross process boundaries.
+- Circular imports are rejected for safety.
+- Very large state objects can create memory pressure.
+- Custom runtime definitions may need extra care around Windows symlinks.
+- GUI behavior, compiler availability, and runtime command names depend on the
+  host operating system and installed toolchain.
+- Process timeouts and import limits reduce accidental resource abuse but do not
+  turn arbitrary native code into a security sandbox.
+
+See the [changelog](CHANGELOG.md) and [v2.2.0 release notes](docs/RELEASE-2.2.0.md)
+for the tested changes and release artifact contract. Planned behavior should not
+be read as shipped behavior.
+
+---
+
+## Roadmap
+
+The [public roadmap](ROADMAP.md) separates the v2.2.0 foundation, proposed next
+steps, and longer-term ideas. If you want to help Block grow, a reproducible
+example, documentation fix, regression test, or real workflow is more useful than
+an unverified benchmark.
+
+If Block saves you from maintaining a fragile chain of glue scripts, consider
+starring the repository, sharing the example that helped you, or opening a focused
+issue with the version and runtime details. Those signals help prioritize work
+without pretending that every use case is already supported.
+
+If you want to help validate the current release, start with the [external tester packet](docs/TESTER-PACKET.md). Maintainers should keep external validation separate from their own smoke tests; the [validation guide](docs/THIRD-PARTY-VALIDATION.md) explains how to record independent evidence.
+
 ---
 
 ## Documentation, contribution, and license
 
+- [Documentation index](docs/README.md)
 - [Markdown Wiki](docs/wiki/README.md)
+- [Book source](docs/book/README.md)
 - [Contributing guide](CONTRIBUTING.md)
+- [Support guide](SUPPORT.md)
+- [Governance](GOVERNANCE.md)
 - [Security policy](SECURITY.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Citation metadata](CITATION.cff)
 - [MIT License](LICENSE)
 - [v2.2.0 release manifest](docs/RELEASE-2.2.0.md)
 

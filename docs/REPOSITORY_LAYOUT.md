@@ -12,9 +12,9 @@ continue to work.
 | `src/` | Block Engine C# source shared by the Lite, Standard, and Plus builds. |
 | `block-vscode-extension/` | VS Code language extension source and manifest. |
 | `acode-plugin-block/` | Acode plugin source and manifest. |
-| `docs/` | Maintainer documentation and repository notes. |
+| `docs/` | Maintainer documentation, book source, tester packet, recruitment copy, and repository notes. |
 | `docs/wiki/` | Version-controlled Markdown Wiki source. |
-| `tests/` | Windows PowerShell engine smoke tests. |
+| `tests/` | Windows PowerShell engine, CLI, and native-language regression tests. |
 
 ## Root-level files
 
@@ -33,6 +33,19 @@ continue to work.
 | `block-language-2.2.0.vsix` | Published VS Code extension package. |
 | `acode-plugin-block-2.2.0.zip` | Published Acode plugin package. |
 | `SHA256SUMS.txt` | SHA-256 checksums for the published engine binaries. |
+| `SUPPORT.md` | Where to ask for help and what evidence to include. |
+| `GOVERNANCE.md` | Current maintainer and decision process. |
+| `CITATION.cff` | Machine-readable software citation metadata. |
+| `ROADMAP.md` | Public distinction between shipped work and proposed directions. |
+
+## Tester and validation documents
+
+| Path | Purpose |
+| --- | --- |
+| `docs/TESTER-PACKET.md` | Copy-ready ten-minute test instructions and report format for external testers. |
+| `docs/TESTER-RECRUITMENT.md` | English and Traditional Chinese recruitment posts plus channel guidance. |
+| `docs/REDDIT-OUTREACH.md` | Different Reddit drafts, suitability decisions, and posting discipline. |
+| `docs/THIRD-PARTY-VALIDATION.md` | Maintainer process for recording independent validation evidence. |
 
 ## Project governance
 
@@ -42,7 +55,9 @@ continue to work.
 | `CONTRIBUTING.md` | Development and pull request workflow. |
 | `SECURITY.md` | Private vulnerability reporting guidance. |
 | `CODE_OF_CONDUCT.md` | Community participation standards. |
-| `.github/ISSUE_TEMPLATE/` | Structured bug and feature reports. |
+| `.github/ISSUE_TEMPLATE/` | Structured bug, feature, validation, and volunteer tester reports. |
+| `.github/CODEOWNERS` | Default review ownership. |
+| `.github/dependabot.yml` | Monthly GitHub Actions dependency checks. |
 
 Historical packages remain at the root for backwards compatibility. Before
 moving or removing any release artifact, search the site files for references

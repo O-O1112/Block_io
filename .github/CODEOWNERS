@@ -1,0 +1,9 @@
+# Default review owner for the current maintainer-led project.
+* @O-O1112
+
+# Keep release, security, and workflow changes visible to the maintainer.
+/.github/ @O-O1112
+/SECURITY.md @O-O1112
+/build*.ps1 @O-O1112
+/verify-release.ps1 @O-O1112
+/BlockSetup.exe @O-O1112

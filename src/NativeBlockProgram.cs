@@ -14,11 +14,12 @@ namespace BlockEngine
         private const int MaxLoopIterations = 10000;
         private const int MaxCallDepth = 64;
 
-        private static readonly Regex Assignment = new Regex(@"^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.+)$", RegexOptions.Compiled);
         private static readonly Regex IfHeader = new Regex(@"^if\s+(.+):$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex ElifHeader = new Regex(@"^elif\s+(.+):$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex WhileHeader = new Regex(@"^while\s+(.+):$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex ForHeader = new Regex(@"^for\s+([A-Za-z_][A-Za-z0-9_]*)\s+in\s+(.+):$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex FuncHeader = new Regex(@"^func\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(([^)]*)\)\s*:$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex PrintStatement = new Regex(@"^print\s*\((.*)\)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex Identifier = new Regex(@"^[A-Za-z_][A-Za-z0-9_]*$", RegexOptions.Compiled);
 
         public static void Execute(string code, Dictionary<string, object> state, Action<string> output)
@@ -50,23 +51,18 @@ namespace BlockEngine
                     terminator = "else";
                     return result;
                 }
+                if (ElifHeader.IsMatch(line))
+                {
+                    if (!allowElse) throw Error(lineNumber, "Unexpected elif block.");
+                    terminator = "elif";
+                    return result;
+                }
 
                 Match match = IfHeader.Match(line);
                 if (match.Success)
                 {
                     index++;
-                    string bodyEnd;
-                    List<Statement> thenBody = ParseSequence(lines, ref index, true, out bodyEnd);
-                    List<Statement> elseBody = new List<Statement>();
-                    if (bodyEnd == "else")
-                    {
-                        index++;
-                        string elseEnd;
-                        elseBody = ParseSequence(lines, ref index, false, out elseEnd);
-                        if (elseEnd != "block") throw Error(lineNumber, "if/else block must end with 'block'.");
-                    }
-                    else if (bodyEnd != "block") throw Error(lineNumber, "if block must end with 'block'.");
-                    result.Add(new IfStatement(lineNumber, match.Groups[1].Value, thenBody, elseBody));
+                    result.Add(ParseIfStatement(lineNumber, match.Groups[1].Value, lines, ref index));
                     continue;
                 }
 
@@ -121,6 +117,35 @@ namespace BlockEngine
             return result;
         }
 
+        private static IfStatement ParseIfStatement(int lineNumber, string condition, string[] lines, ref int index)
+        {
+            string bodyEnd;
+            List<Statement> thenBody = ParseSequence(lines, ref index, true, out bodyEnd);
+            List<Statement> elseBody = new List<Statement>();
+
+            if (bodyEnd == "elif")
+            {
+                int elifLine = index + 1;
+                Match elif = ElifHeader.Match(lines[index].Trim());
+                if (!elif.Success) throw Error(elifLine, "Invalid elif block.");
+                index++;
+                elseBody.Add(ParseIfStatement(elifLine, elif.Groups[1].Value, lines, ref index));
+            }
+            else if (bodyEnd == "else")
+            {
+                index++;
+                string elseEnd;
+                elseBody = ParseSequence(lines, ref index, false, out elseEnd);
+                if (elseEnd != "block") throw Error(lineNumber, "if/else block must end with 'block'.");
+            }
+            else if (bodyEnd != "block")
+            {
+                throw Error(lineNumber, "if block must end with 'block'.");
+            }
+
+            return new IfStatement(lineNumber, condition, thenBody, elseBody);
+        }
+
         private static void ExecuteStatements(List<Statement> statements, Context context)
         {
             foreach (Statement statement in statements)
@@ -145,7 +170,17 @@ namespace BlockEngine
                     while (ToBool(Evaluate(loop.Condition, context, loop.Line)))
                     {
                         if (++count > MaxLoopIterations) throw Error(loop.Line, "while loop exceeded the 10,000 iteration limit.");
-                        ExecuteStatements(loop.Body, context);
+                        context.LoopDepth++;
+                        try
+                        {
+                            ExecuteStatements(loop.Body, context);
+                        }
+                        catch (ContinueSignal) { }
+                        catch (BreakSignal) { break; }
+                        finally
+                        {
+                            context.LoopDepth--;
+                        }
                     }
                     continue;
                 }
@@ -159,8 +194,18 @@ namespace BlockEngine
                     foreach (object value in values)
                     {
                         if (++count > MaxLoopIterations) throw Error(forLoop.Line, "for loop exceeded the 10,000 iteration limit.");
-                        context.State[forLoop.Variable] = value;
-                        ExecuteStatements(forLoop.Body, context);
+                        context.SetValue(forLoop.Variable, value);
+                        context.LoopDepth++;
+                        try
+                        {
+                            ExecuteStatements(forLoop.Body, context);
+                        }
+                        catch (ContinueSignal) { }
+                        catch (BreakSignal) { break; }
+                        finally
+                        {
+                            context.LoopDepth--;
+                        }
                     }
                 }
             }
@@ -170,11 +215,23 @@ namespace BlockEngine
         {
             string line = statement.Code;
             if (string.Equals(line, "pass", StringComparison.OrdinalIgnoreCase)) return;
-            if (line.StartsWith("print", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(line, "break", StringComparison.OrdinalIgnoreCase))
             {
-                if (!line.EndsWith(")", StringComparison.Ordinal) || line.IndexOf('(') < 0) throw Error(statement.Line, "Invalid print statement.");
-                int open = line.IndexOf('(');
-                string args = line.Substring(open + 1, line.Length - open - 2);
+                if (context.LoopDepth <= 0) throw Error(statement.Line, "break can only be used inside a loop.");
+                throw new BreakSignal();
+            }
+            if (string.Equals(line, "continue", StringComparison.OrdinalIgnoreCase))
+            {
+                if (context.LoopDepth <= 0) throw Error(statement.Line, "continue can only be used inside a loop.");
+                throw new ContinueSignal();
+            }
+            if (string.Equals(line, "print", StringComparison.OrdinalIgnoreCase) ||
+                line.StartsWith("print(", StringComparison.OrdinalIgnoreCase) ||
+                line.StartsWith("print ", StringComparison.OrdinalIgnoreCase))
+            {
+                Match print = PrintStatement.Match(line);
+                if (!print.Success) throw Error(statement.Line, "Invalid print statement. Use print(value, ...).");
+                string args = print.Groups[1].Value;
                 List<string> parts = SplitArguments(args, statement.Line);
                 List<string> values = new List<string>();
                 foreach (string part in parts) values.Add(FormatValue(Evaluate(part, context, statement.Line)));
@@ -186,13 +243,66 @@ namespace BlockEngine
                 string expression = line.Length == 6 ? "null" : line.Substring(6).Trim();
                 throw new ReturnSignal(expression.Length == 0 ? null : Evaluate(expression, context, statement.Line));
             }
-            Match assignment = Assignment.Match(line);
-            if (assignment.Success)
+            int assignmentIndex = FindAssignmentOperator(line);
+            if (assignmentIndex >= 0)
             {
-                context.State[assignment.Groups[1].Value] = Evaluate(assignment.Groups[2].Value, context, statement.Line);
+                string target = line.Substring(0, assignmentIndex).Trim();
+                string expression = line.Substring(assignmentIndex + 1).Trim();
+                AssignTarget(target, Evaluate(expression, context, statement.Line), context, statement.Line);
                 return;
             }
             Evaluate(line, context, statement.Line); // bare function call
+        }
+
+        private static int FindAssignmentOperator(string line)
+        {
+            bool quoted = false;
+            char quote = '\0';
+            bool escaped = false;
+            int depth = 0;
+            for (int i = 0; i < line.Length; i++)
+            {
+                char c = line[i];
+                if (escaped) { escaped = false; continue; }
+                if (quoted)
+                {
+                    if (c == '\\') { escaped = true; continue; }
+                    if (c == quote) quoted = false;
+                    continue;
+                }
+                if (c == '\'' || c == '"') { quoted = true; quote = c; continue; }
+                if (c == '(' || c == '[' || c == '{') { depth++; continue; }
+                if (c == ')' || c == ']' || c == '}') { if (depth > 0) depth--; continue; }
+                if (depth == 0 && c == '=')
+                {
+                    char previous = i > 0 ? line[i - 1] : '\0';
+                    char next = i + 1 < line.Length ? line[i + 1] : '\0';
+                    if (previous != '=' && previous != '!' && previous != '<' && previous != '>' && next != '=') return i;
+                }
+            }
+            return -1;
+        }
+
+        private static void AssignTarget(string target, object value, Context context, int lineNumber)
+        {
+            Match variable = Regex.Match(target, @"^[A-Za-z_][A-Za-z0-9_]*$");
+            if (variable.Success)
+            {
+                context.SetValue(target, value);
+                return;
+            }
+
+            Match indexed = Regex.Match(target, @"^([A-Za-z_][A-Za-z0-9_]*)\s*\[([\s\S]*)\]$");
+            if (indexed.Success)
+            {
+                object container;
+                if (!context.TryGetValue(indexed.Groups[1].Value, out container))
+                    throw Error(lineNumber, "Unknown variable: " + indexed.Groups[1].Value);
+                SetIndex(container, Evaluate(indexed.Groups[2].Value, context, lineNumber), value, lineNumber);
+                return;
+            }
+
+            throw Error(lineNumber, "Invalid assignment target: " + target);
         }
 
         private static List<string> SplitArguments(string text, int lineNumber)
@@ -242,33 +352,203 @@ namespace BlockEngine
                 return values;
             }
 
+            if (string.Equals(name, "len", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireArgumentCount(name, arguments, 1);
+                object value = arguments[0];
+                if (value is string) return ((string)value).Length;
+                ICollection collection = value as ICollection;
+                if (collection != null) return collection.Count;
+                throw new InvalidOperationException("len expects a string, list, or map.");
+            }
+            if (string.Equals(name, "str", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireArgumentCount(name, arguments, 1);
+                return FormatValue(arguments[0]);
+            }
+            if (string.Equals(name, "int", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireArgumentCount(name, arguments, 1);
+                return NormalizeNumber(Math.Truncate(Number(arguments[0])));
+            }
+            if (string.Equals(name, "float", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireArgumentCount(name, arguments, 1);
+                return Number(arguments[0]);
+            }
+            if (string.Equals(name, "bool", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireArgumentCount(name, arguments, 1);
+                return ToBool(arguments[0]);
+            }
+            if (string.Equals(name, "type", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireArgumentCount(name, arguments, 1);
+                return TypeName(arguments[0]);
+            }
+            if (string.Equals(name, "contains", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireArgumentCount(name, arguments, 2);
+                return ContainsValue(arguments[0], arguments[1]);
+            }
+            if (string.Equals(name, "keys", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireArgumentCount(name, arguments, 1);
+                IDictionary map = arguments[0] as IDictionary;
+                if (map == null) throw new InvalidOperationException("keys expects a map.");
+                List<object> keys = new List<object>();
+                foreach (object key in map.Keys) keys.Add(key == null ? null : key.ToString());
+                return keys;
+            }
+            if (string.Equals(name, "values", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireArgumentCount(name, arguments, 1);
+                IDictionary map = arguments[0] as IDictionary;
+                if (map == null) throw new InvalidOperationException("values expects a map.");
+                List<object> values = new List<object>();
+                foreach (object value in map.Values) values.Add(value);
+                return values;
+            }
+            if (string.Equals(name, "sum", StringComparison.OrdinalIgnoreCase))
+            {
+                RequireArgumentCount(name, arguments, 1);
+                IEnumerable sequence = arguments[0] as IEnumerable;
+                if (sequence == null || arguments[0] is string) throw new InvalidOperationException("sum expects a list.");
+                double total = 0;
+                foreach (object value in sequence) total += Number(value);
+                return NormalizeNumber(total);
+            }
+
             FunctionStatement function;
             if (!context.Functions.TryGetValue(name, out function)) throw Error(lineNumber, "Unknown function: " + name);
             if (context.CallDepth >= MaxCallDepth) throw Error(lineNumber, "Function call depth exceeded.");
             if (arguments.Count != function.Parameters.Count) throw Error(lineNumber, string.Format("Function {0} expects {1} argument(s), got {2}.", name, function.Parameters.Count, arguments.Count));
 
-            Dictionary<string, object> old = new Dictionary<string, object>(StringComparer.Ordinal);
-            Dictionary<string, bool> existed = new Dictionary<string, bool>(StringComparer.Ordinal);
+            Dictionary<string, object> localScope = new Dictionary<string, object>(StringComparer.Ordinal);
             for (int i = 0; i < function.Parameters.Count; i++)
             {
                 string parameter = function.Parameters[i];
-                object oldValue;
-                existed[parameter] = context.State.TryGetValue(parameter, out oldValue);
-                if (existed[parameter]) old[parameter] = oldValue;
-                context.State[parameter] = arguments[i];
+                localScope[parameter] = arguments[i];
             }
 
             context.CallDepth++;
+            int callerLoopDepth = context.LoopDepth;
             object returnValue = null;
+            context.PushScope(localScope);
+            context.LoopDepth = 0;
             try { ExecuteStatements(function.Body, context); }
             catch (ReturnSignal signal) { returnValue = signal.Value; }
             finally
             {
+                context.LoopDepth = callerLoopDepth;
+                context.PopScope();
                 context.CallDepth--;
-                foreach (string parameter in function.Parameters)
-                    if (existed[parameter]) context.State[parameter] = old[parameter]; else context.State.Remove(parameter);
             }
             return returnValue;
+        }
+
+        private static void RequireArgumentCount(string name, List<object> arguments, int expected)
+        {
+            if (arguments.Count != expected)
+                throw new InvalidOperationException(string.Format("{0} expects {1} argument(s), got {2}.", name, expected, arguments.Count));
+        }
+
+        private static string TypeName(object value)
+        {
+            if (value == null) return "null";
+            if (value is bool) return "bool";
+            if (value is string) return "string";
+            if (value is IDictionary) return "map";
+            if (value is IEnumerable && !(value is string)) return "list";
+            if (value is byte || value is short || value is int || value is long || value is float || value is double || value is decimal)
+                return "number";
+            return value.GetType().Name.ToLowerInvariant();
+        }
+
+        private static bool ContainsValue(object container, object needle)
+        {
+            if (container is string) return ((string)container).Contains(FormatValue(needle));
+            IDictionary map = container as IDictionary;
+            if (map != null) return map.Contains(needle) || map.Contains(FormatValue(needle));
+            IEnumerable sequence = container as IEnumerable;
+            if (sequence != null)
+            {
+                foreach (object value in sequence) if (Equal(value, needle)) return true;
+                return false;
+            }
+            throw new InvalidOperationException("contains expects a string, list, or map.");
+        }
+
+        private static object GetMember(object value, string member, int lineNumber)
+        {
+            if (string.Equals(member, "length", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(member, "count", StringComparison.OrdinalIgnoreCase))
+            {
+                if (value is string) return ((string)value).Length;
+                ICollection collection = value as ICollection;
+                if (collection != null) return collection.Count;
+            }
+
+            IDictionary map = value as IDictionary;
+            if (map != null)
+            {
+                if (map.Contains(member)) return map[member];
+                return null;
+            }
+            throw Error(lineNumber, "Unknown member '" + member + "' on " + TypeName(value) + ".");
+        }
+
+        private static object GetIndex(object value, object index, int lineNumber)
+        {
+            IList list = value as IList;
+            if (list != null)
+            {
+                int position = ToIndex(index, lineNumber);
+                if (position < 0 || position >= list.Count) throw Error(lineNumber, "List index is out of range: " + position + ".");
+                return list[position];
+            }
+            string text = value as string;
+            if (text != null)
+            {
+                int position = ToIndex(index, lineNumber);
+                if (position < 0 || position >= text.Length) throw Error(lineNumber, "String index is out of range: " + position + ".");
+                return text[position].ToString();
+            }
+            IDictionary map = value as IDictionary;
+            if (map != null)
+            {
+                if (map.Contains(index)) return map[index];
+                string key = FormatValue(index);
+                return map.Contains(key) ? map[key] : null;
+            }
+            throw Error(lineNumber, "Value of type " + TypeName(value) + " is not indexable.");
+        }
+
+        private static void SetIndex(object value, object index, object replacement, int lineNumber)
+        {
+            IList list = value as IList;
+            if (list != null)
+            {
+                int position = ToIndex(index, lineNumber);
+                if (position < 0 || position >= list.Count) throw Error(lineNumber, "List index is out of range: " + position + ".");
+                list[position] = replacement;
+                return;
+            }
+            IDictionary map = value as IDictionary;
+            if (map != null)
+            {
+                map[FormatValue(index)] = replacement;
+                return;
+            }
+            throw Error(lineNumber, "Value of type " + TypeName(value) + " cannot be assigned by index.");
+        }
+
+        private static int ToIndex(object value, int lineNumber)
+        {
+            double number = Number(value);
+            if (Math.Abs(number - Math.Round(number)) > 0.0000000001)
+                throw Error(lineNumber, "Collection indexes must be integers.");
+            return (int)Math.Round(number);
         }
 
         private static object NormalizeNumber(double value) { return Math.Abs(value - Math.Round(value)) < 0.0000000001 ? (object)(long)Math.Round(value) : value; }
@@ -312,10 +592,40 @@ namespace BlockEngine
         private sealed class FunctionStatement : Statement { public FunctionStatement(int line, string name, List<string> parameters, List<Statement> body) : base(line) { Name = name; Parameters = parameters; Body = body; } public string Name; public List<string> Parameters; public List<Statement> Body; }
         private sealed class Context
         {
-            public Context(Dictionary<string, object> state, Action<string> output) { State = state; Output = output; Functions = new Dictionary<string, FunctionStatement>(StringComparer.OrdinalIgnoreCase); }
-            public Dictionary<string, object> State; public Action<string> Output; public Dictionary<string, FunctionStatement> Functions; public int CallDepth;
+            private readonly List<Dictionary<string, object>> scopes = new List<Dictionary<string, object>>();
+
+            public Context(Dictionary<string, object> state, Action<string> output)
+            {
+                State = state;
+                Output = output;
+                Functions = new Dictionary<string, FunctionStatement>(StringComparer.OrdinalIgnoreCase);
+            }
+
+            public Dictionary<string, object> State;
+            public Action<string> Output;
+            public Dictionary<string, FunctionStatement> Functions;
+            public int CallDepth;
+            public int LoopDepth;
+
+            public void PushScope(Dictionary<string, object> scope) { scopes.Add(scope); }
+            public void PopScope() { if (scopes.Count > 0) scopes.RemoveAt(scopes.Count - 1); }
+
+            public bool TryGetValue(string name, out object value)
+            {
+                for (int i = scopes.Count - 1; i >= 0; i--)
+                    if (scopes[i].TryGetValue(name, out value)) return true;
+                return State.TryGetValue(name, out value);
+            }
+
+            public void SetValue(string name, object value)
+            {
+                if (scopes.Count == 0) State[name] = value;
+                else scopes[scopes.Count - 1][name] = value;
+            }
         }
         private sealed class ReturnSignal : Exception { public ReturnSignal(object value) { Value = value; } public object Value; }
+        private sealed class BreakSignal : Exception { }
+        private sealed class ContinueSignal : Exception { }
 
         private sealed class ExpressionParser
         {
@@ -342,32 +652,109 @@ namespace BlockEngine
             private object ParsePrimary()
             {
                 Skip();
-                if (Match("(")) { object value = ParseExpression(); Require(")"); return value; }
-                if (position < text.Length && (text[position] == '\'' || text[position] == '"')) return ParseString();
+                if (Match("(")) { object value = ParseExpression(); Require(")"); return ParsePostfix(value); }
+                if (position < text.Length && (text[position] == '\'' || text[position] == '"')) return ParsePostfix(ParseString());
                 if (Match("["))
                 {
                     List<object> values = new List<object>();
                     if (!Match("]")) { while (true) { values.Add(ParseExpression()); if (Match("]")) break; Require(","); } }
-                    return values;
+                    return ParsePostfix(values);
                 }
-                int start = position;
-                while (position < text.Length && (char.IsLetterOrDigit(text[position]) || text[position] == '_' || text[position] == '.')) position++;
-                if (start == position) throw Error(line, "Expected a value.");
-                string token = text.Substring(start, position - start);
+                if (Match("{"))
+                {
+                    Dictionary<string, object> map = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+                    if (!Match("}"))
+                    {
+                        while (true)
+                        {
+                            Skip();
+                            string key = position < text.Length && (text[position] == '\'' || text[position] == '"')
+                                ? ParseString() : ReadIdentifier();
+                            Require(":");
+                            map[key] = ParseExpression();
+                            if (Match("}")) break;
+                            Require(",");
+                        }
+                    }
+                    return ParsePostfix(map);
+                }
+
+                string token = ReadToken();
                 double number;
                 if (double.TryParse(token, NumberStyles.Float, CultureInfo.InvariantCulture, out number)) return NormalizeNumber(number);
                 if (token.Equals("true", StringComparison.OrdinalIgnoreCase)) return true;
                 if (token.Equals("false", StringComparison.OrdinalIgnoreCase)) return false;
                 if (token.Equals("null", StringComparison.OrdinalIgnoreCase)) return null;
+                object resolvedValue;
                 if (Match("("))
                 {
                     List<object> arguments = new List<object>();
                     if (!Match(")")) { while (true) { arguments.Add(ParseExpression()); if (Match(")")) break; Require(","); } }
-                    return InvokeFunction(token, arguments, context, line);
+                    resolvedValue = InvokeFunction(token, arguments, context, line);
                 }
-                object resolvedValue;
-                if (!context.State.TryGetValue(token, out resolvedValue)) throw Error(line, "Unknown variable: " + token);
-                return resolvedValue;
+                else
+                {
+                    if (!context.TryGetValue(token, out resolvedValue)) throw Error(line, "Unknown variable: " + token);
+                }
+                return ParsePostfix(resolvedValue);
+            }
+
+            private object ParsePostfix(object value)
+            {
+                while (true)
+                {
+                    if (Match("["))
+                    {
+                        object index = ParseExpression();
+                        Require("]");
+                        value = GetIndex(value, index, line);
+                    }
+                    else if (Match("."))
+                    {
+                        value = GetMember(value, ReadIdentifier(), line);
+                    }
+                    else
+                    {
+                        return value;
+                    }
+                }
+            }
+
+            private string ReadToken()
+            {
+                Skip();
+                if (position >= text.Length) throw Error(line, "Expected a value.");
+                int start = position;
+                if (char.IsDigit(text[position]))
+                {
+                    while (position < text.Length && char.IsDigit(text[position])) position++;
+                    if (position < text.Length && text[position] == '.')
+                    {
+                        position++;
+                        while (position < text.Length && char.IsDigit(text[position])) position++;
+                    }
+                    if (position < text.Length && (text[position] == 'e' || text[position] == 'E'))
+                    {
+                        position++;
+                        if (position < text.Length && (text[position] == '+' || text[position] == '-')) position++;
+                        while (position < text.Length && char.IsDigit(text[position])) position++;
+                    }
+                }
+                else
+                {
+                    return ReadIdentifier();
+                }
+                return text.Substring(start, position - start);
+            }
+
+            private string ReadIdentifier()
+            {
+                Skip();
+                if (position >= text.Length || !(char.IsLetter(text[position]) || text[position] == '_'))
+                    throw Error(line, "Expected an identifier.");
+                int start = position++;
+                while (position < text.Length && (char.IsLetterOrDigit(text[position]) || text[position] == '_')) position++;
+                return text.Substring(start, position - start);
             }
             private string ParseString()
             {

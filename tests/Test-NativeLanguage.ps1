@@ -1,0 +1,96 @@
+param(
+    [string]$EngineDirectory = (Join-Path $PSScriptRoot '..\bin')
+)
+
+$ErrorActionPreference = 'Stop'
+$EngineDirectory = [IO.Path]::GetFullPath($EngineDirectory)
+$failures = New-Object System.Collections.Generic.List[string]
+$tempRoot = Join-Path ([IO.Path]::GetTempPath()) ('block-native-tests-' + [Guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Force -Path $tempRoot | Out-Null
+
+function Invoke-Block([string]$Executable, [string[]]$Arguments) {
+    $path = Join-Path $EngineDirectory $Executable
+    if (-not (Test-Path -LiteralPath $path)) { throw "Missing test executable: $path" }
+    $output = (& $path @Arguments 2>&1 | Out-String).Trim()
+    [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $output }
+}
+
+function Assert-Condition([bool]$Condition, [string]$Message) {
+    if (-not $Condition) { $failures.Add($Message) }
+}
+
+try {
+    $scriptPath = Join-Path $tempRoot 'native-language.blk'
+    @'
+items = [1, 2, 3, 4]
+total = 0
+for item in items:
+    if item == 2:
+        continue
+    block
+    total = total + item
+block
+
+score = 9
+if score == 8:
+    status = "wrong"
+elif score == 9:
+    status = "elif-ok"
+else:
+    status = "wrong"
+block
+
+while total < 10:
+    total = total + 1
+    if total == 10:
+        break
+    block
+block
+
+profile = {"name": "Block", "total": total}
+profile["name"] = "Block Language"
+
+func greet(name):
+    return "Hello " + name
+block
+
+outside = "global"
+func local_scope(value):
+    local_value = value
+    return local_value
+block
+
+printer = "not-a-print-call"
+
+print(status)
+print(profile["name"])
+print(profile.total)
+print(items[1], items.length)
+print(sum(items), str(total), type(profile), contains(items, 3))
+print(greet("Block"))
+print(local_scope("local"), outside)
+print(printer)
+'@ | Set-Content -LiteralPath $scriptPath -Encoding UTF8
+
+    $result = Invoke-Block 'block.exe' @('run', $scriptPath)
+    Assert-Condition ($result.ExitCode -eq 0) "Native language program failed: $($result.Output)"
+    Assert-Condition ($result.Output -match 'elif-ok') "elif did not execute: $($result.Output)"
+    Assert-Condition ($result.Output -match 'Block Language') "map assignment/member access failed: $($result.Output)"
+    Assert-Condition ($result.Output -match '10') "loop control failed: $($result.Output)"
+    Assert-Condition ($result.Output -match '2 4') "list index/length failed: $($result.Output)"
+    Assert-Condition ($result.Output -match '10 10 map true') "built-in functions failed: $($result.Output)"
+    Assert-Condition ($result.Output -match 'Hello Block') "function return failed: $($result.Output)"
+    Assert-Condition ($result.Output -match 'local global') "function scope/global lookup failed: $($result.Output)"
+    Assert-Condition ($result.Output -match 'not-a-print-call') "identifier beginning with print was misparsed: $($result.Output)"
+} catch {
+    $failures.Add($_.Exception.Message)
+} finally {
+    if (Test-Path -LiteralPath $tempRoot) { Remove-Item -LiteralPath $tempRoot -Recurse -Force }
+}
+
+if ($failures.Count -gt 0) {
+    $failures | ForEach-Object { Write-Error $_ }
+    exit 1
+}
+
+Write-Host 'Native Block language tests passed.'
