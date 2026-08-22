@@ -4,6 +4,11 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $bin = Join-Path $ReleaseDirectory 'bin'
+if (-not (Test-Path -LiteralPath $bin)) {
+    # GitHub Pages publishes the release binaries from the repository root.
+    # Local builds may keep them under .\bin, so support both layouts.
+    $bin = $ReleaseDirectory
+}
 $expected = @('block.exe', 'block-lite.exe', 'block-plus.exe')
 $failures = New-Object System.Collections.Generic.List[string]
 

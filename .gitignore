@@ -1,0 +1,24 @@
+# Local build output
+/bin/
+/obj/
+*.user
+*.suo
+
+# Local testing and staging directories
+/_analysis/
+/_remote-*/
+/_repair-*/
+/_build-*/
+/_test-*/
+/.blocklang/
+*.staging-*
+*.backup
+*.tmp
+
+# Generated extension packages inside source folders
+/block-vscode-extension/*.vsix
+/block-vscode-extension/*.zip
+/acode-plugin-block/*.zip
+
+# Keep the release files at the repository root tracked: GitHub Pages uses
+# their stable download paths.

@@ -483,6 +483,26 @@ This reflects the core philosophy of Block: write each task in the language best
 
 ---
 
+## Repository Layout and Release Verification
+
+This GitHub repository also hosts the Block Pages download site. The root
+website files and published download artifacts intentionally keep their stable
+paths; source code and maintainer notes are separated into `src/`, the two
+extension directories, and `docs/`.
+
+For the maintainer build and release checks, run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\build.ps1
+powershell -ExecutionPolicy Bypass -File .\package-extensions.ps1
+powershell -ExecutionPolicy Bypass -File .\verify-release.ps1
+```
+
+See [`docs/REPOSITORY_LAYOUT.md`](docs/REPOSITORY_LAYOUT.md) for the complete
+directory map and the compatibility rules for published files.
+
+---
+
 ## A Note for Newcomers
 
 **Leave the language to the language; let Block handle the flow.**
